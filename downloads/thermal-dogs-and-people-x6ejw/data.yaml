@@ -1,0 +1,14 @@
+names:
+- dog
+- person
+nc: 2
+path: .
+roboflow:
+  license: CC BY 4.0
+  project: thermal-dogs-and-people-x6ejw
+  url: https://universe.roboflow.com/roboflow-100/thermal-dogs-and-people-x6ejw/dataset/1
+  version: 1
+  workspace: roboflow-100
+test: test/images
+train: train/images
+val: valid/images

@@ -1,0 +1,14 @@
+names:
+- cheetah
+- human
+nc: 2
+path: .
+roboflow:
+  license: CC BY 4.0
+  project: thermal-cheetah-my4dp
+  url: https://universe.roboflow.com/roboflow-100/thermal-cheetah-my4dp/dataset/1
+  version: 1
+  workspace: roboflow-100
+test: test/images
+train: train/images
+val: valid/images

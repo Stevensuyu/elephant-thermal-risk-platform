@@ -1,0 +1,12 @@
+path: C:/Users/123/Documents/Codex/2026-05-27/academic-research-suite-ai/data/elephant_multisource_thermal
+train: train/images
+val: valid/images
+test: test/images
+names:
+  0: dog
+  1: person
+  2: cheetah
+  3: elephant
+  4: animal
+  5: device
+  6: unknown

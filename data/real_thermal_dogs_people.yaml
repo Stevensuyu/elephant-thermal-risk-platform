@@ -1,0 +1,7 @@
+path: C:/Users/123/Documents/Codex/2026-05-27/academic-research-suite-ai/downloads/thermal-dogs-and-people-x6ejw
+train: train/images
+val: valid/images
+test: test/images
+names:
+  0: dog
+  1: person

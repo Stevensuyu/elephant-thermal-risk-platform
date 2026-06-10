@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 8
+names: ['0', '1', '2', '3', 'animal', 'device', 'human', 'unknown']
+
+roboflow:
+  workspace: riss-tsbuj
+  project: elephant-oqdic
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/riss-tsbuj/elephant-oqdic/dataset/2

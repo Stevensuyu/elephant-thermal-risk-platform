@@ -1,0 +1,17 @@
+node_modules/
+.next/
+dist/
+dist-site/
+*.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+prisma/migrations/
+*.pyc
+__pycache__/
+runs/
+datasets/
+storage/
+worker/__pycache__/

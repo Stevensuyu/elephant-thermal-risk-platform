@@ -1,0 +1,8 @@
+path: C:/Users/123/Documents/Codex/2026-05-27/academic-research-suite-ai/data/multisource_thermal_animals
+train: train/images
+val: valid/images
+test: test/images
+names:
+  0: dog
+  1: person
+  2: cheetah
