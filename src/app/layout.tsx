@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '大象热风险平台',
-  description: '中国地图接入、AI 研判和 YOLO 训练的一体化热成像预警平台',
+  title: '天眼护象实时研判平台',
+  description: '中国地图、DJI 司空、实时热成像与 AI 分析接口的一体化研判平台',
 }
 
 export default function RootLayout({

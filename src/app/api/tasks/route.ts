@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       }
 
       const task = await createTask({
-        name: String(form.get('name') || videoFile?.name || `训练任务-${Date.now()}`),
+        name: String(form.get('name') || videoFile?.name || `研判任务-${Date.now()}`),
         description: String(form.get('description') || ''),
         videoFileName: videoFile?.name,
         videoPath,
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const task = await createTask({
-      name: body.name || `训练任务-${Date.now()}`,
+      name: body.name || `研判任务-${Date.now()}`,
       description: body.description,
       videoUrl: body.videoUrl,
       modelType: body.modelType,

@@ -5,7 +5,6 @@ import {
   BellRing,
   BrainCircuit,
   CheckCircle2,
-  CloudSun,
   Cpu,
   Database,
   MapPinned,
@@ -13,16 +12,42 @@ import {
   Radar,
   RefreshCw,
   Route,
-  ScanSearch,
   ShieldAlert,
   UploadCloud,
   type LucideIcon,
 } from 'lucide-react'
 import ChinaMap, { type ChinaMapMarker } from '@/components/ChinaMap'
 import CreateTaskModal, { type CreateTaskPayload } from '@/components/CreateTaskModal'
+import IntegrationSettings from '@/components/IntegrationSettings'
+import LiveFusionPanel from '@/components/LiveFusionPanel'
 import Sidebar from '@/components/Sidebar'
 import TaskCard from '@/components/TaskCard'
 import type { ModelStatus, TrainingTask, WarningLevel } from '@/lib/store'
+
+type IntegrationStatus = {
+  map: { configured: boolean; provider: string }
+  ai: { configured: boolean; provider: string; endpoint: string }
+  dji: { configured: boolean; provider: string; endpoint: string }
+  yolo: { configured: boolean; provider: string; endpoint: string; weights: string }
+  thermal: { configured: boolean; provider: string; source: string }
+}
+
+type LiveFusion = {
+  summary: string
+  analysis: { warningLevel: WarningLevel; intrusionRisk: number; predictionWindow: string; aiSummary: string }
+}
+
+type TabStateProps = {
+  commandTask?: TrainingTask
+  currentLevel: WarningLevel
+  integrationStatus: IntegrationStatus | null
+  level: { label: string; bg: string; ring: string; text: string; bar: string; short: string }
+  liveFusion: LiveFusion | null
+  modelStatus: ModelStatus
+  setIsModalOpen: (open: boolean) => void
+  setSelectedTask: (task: TrainingTask) => void
+  tasks: TrainingTask[]
+}
 
 const emptyModelStatus: ModelStatus = {
   version: 'YOLOv8n-elephant-thermal',
@@ -44,73 +69,46 @@ const levelStyle: Record<WarningLevel, { label: string; short: string; bg: strin
   BLUE: { label: '蓝色预警', short: '蓝', bg: 'bg-blue-600', text: 'text-blue-700', bar: 'bg-blue-500', ring: 'ring-blue-200' },
 }
 
-const fusionSources = [
-  { icon: Radar, title: '无人机实时检测', desc: '热成像目标、数量、置信度、移动方向' },
-  { icon: CloudSun, title: '气象与环境', desc: '降雨、温度、能见度、土地覆盖和水源距离' },
-  { icon: MapPinned, title: '地理空间关系', desc: '村庄、农田、道路、边境线和地形通道' },
-  { icon: Route, title: '历史项圈轨迹', desc: '迁移走廊、停留热点、历史警情密度' },
-]
-
 const chinaMapMarkers: ChinaMapMarker[] = [
   { id: 'yn-bn', name: '西双版纳监测区', lng: 100.7974, lat: 22.0075, status: '热成像巡护' },
   { id: 'yn-pu', name: '普洱边境缓冲区', lng: 101.0215, lat: 22.7736, status: '无人机复飞' },
   { id: 'gx-fc', name: '广西边境样例点', lng: 108.3538, lat: 21.6871, status: '地图接口联通' },
 ]
 
-interface IntegrationStatus {
-  amap: { configured: boolean; provider: string }
-  ai: { configured: boolean; provider: string }
-  yolo: { configured: boolean; provider: string; weights: string }
-}
-
-const defaultIntegrationStatus: IntegrationStatus = {
-  amap: { configured: false, provider: 'AMap / 高德地图 JS API 2.0' },
-  ai: { configured: false, provider: 'gpt-4.1-mini' },
-  yolo: { configured: false, provider: 'Local Python ultralytics', weights: 'yolov8n.pt' },
-}
-
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [tasks, setTasks] = useState<TrainingTask[]>([])
   const [modelStatus, setModelStatus] = useState<ModelStatus>(emptyModelStatus)
-  const [integrationStatus, setIntegrationStatus] = useState<IntegrationStatus>(defaultIntegrationStatus)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [integrationStatus, setIntegrationStatus] = useState<IntegrationStatus | null>(null)
+  const [liveFusion, setLiveFusion] = useState<LiveFusion | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<TrainingTask | null>(null)
   const [resultTask, setResultTask] = useState<TrainingTask | null>(null)
   const [noticeTask, setNoticeTask] = useState<TrainingTask | null>(null)
-  const [yoloImage, setYoloImage] = useState<File | null>(null)
-  const [yoloResult, setYoloResult] = useState<string>('')
-  const [yoloError, setYoloError] = useState<string>('')
-  const [isYoloRunning, setIsYoloRunning] = useState(false)
 
-  const fetchAll = async () => {
+  const refresh = async () => {
     setIsRefreshing(true)
     try {
-      const [taskResponse, modelResponse, integrationResponse] = await Promise.all([
+      const [taskResponse, modelResponse, integrationResponse, fusionResponse] = await Promise.all([
         fetch('/api/tasks', { cache: 'no-store' }),
         fetch('/api/model-status', { cache: 'no-store' }),
         fetch('/api/integrations/status', { cache: 'no-store' }),
+        fetch('/api/fusion/live', { cache: 'no-store' }),
       ])
-      const nextTasks = await taskResponse.json()
-      const nextModel = await modelResponse.json()
-      const nextIntegration = await integrationResponse.json()
-      setTasks(nextTasks)
-      setModelStatus(nextModel)
-      setIntegrationStatus(nextIntegration)
-      const pendingResult = nextTasks.find((task: TrainingTask) => task.needsModelConfirm)
-      if (pendingResult) setResultTask((current) => current || pendingResult)
-      const activeWarning = nextTasks.find((task: TrainingTask) => ['RED', 'ORANGE'].includes(task.warningLevel) && task.status !== 'COMPLETED')
-      if (activeWarning) setNoticeTask((current) => current || activeWarning)
+      setTasks(await taskResponse.json())
+      setModelStatus(await modelResponse.json())
+      setIntegrationStatus(await integrationResponse.json())
+      setLiveFusion(await fusionResponse.json())
     } finally {
       setIsRefreshing(false)
     }
   }
 
   useEffect(() => {
-    fetchAll()
-    const interval = window.setInterval(fetchAll, 3000)
-    return () => window.clearInterval(interval)
+    void refresh()
+    const timer = window.setInterval(refresh, 5000)
+    return () => window.clearInterval(timer)
   }, [])
 
   const handleCreateTask = async (data: CreateTaskPayload) => {
@@ -124,64 +122,40 @@ export default function Home() {
     form.set('imageSize', String(data.imageSize))
     if (data.video) form.set('video', data.video)
     await fetch('/api/tasks', { method: 'POST', body: form })
-    await fetchAll()
+    await refresh()
   }
 
   const confirmAggregate = async (task: TrainingTask) => {
     await fetch(`/api/tasks/${task.id}/aggregate`, { method: 'POST' })
     setResultTask(null)
-    await fetchAll()
+    await refresh()
   }
 
-  const runYolo = async () => {
-    if (!yoloImage) {
-      setYoloError('请先上传一张热成像图片。')
-      return
-    }
-    setIsYoloRunning(true)
-    setYoloError('')
-    setYoloResult('')
-    try {
-      const form = new FormData()
-      form.set('image', yoloImage)
-      const response = await fetch('/api/yolo/predict', { method: 'POST', body: form })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error || payload.hint || 'YOLO 检测失败')
-      setYoloResult(JSON.stringify(payload, null, 2))
-    } catch (error) {
-      setYoloError(error instanceof Error ? error.message : 'YOLO 检测失败')
-    } finally {
-      setIsYoloRunning(false)
-    }
-  }
-
-  const stats = useMemo(() => ({
-    total: tasks.length,
-    running: tasks.filter((task) => task.status === 'RUNNING').length,
-    pending: tasks.filter((task) => task.status === 'PENDING').length,
-    high: tasks.filter((task) => ['RED', 'ORANGE'].includes(task.warningLevel)).length,
-  }), [tasks])
+  const stats = useMemo(
+    () => ({
+      total: tasks.length,
+      running: tasks.filter((task) => task.status === 'RUNNING').length,
+      pending: tasks.filter((task) => task.status === 'PENDING').length,
+      high: tasks.filter((task) => ['RED', 'ORANGE'].includes(task.warningLevel)).length,
+    }),
+    [tasks],
+  )
 
   const latestTask = tasks[0]
   const commandTask = latestTask || tasks.find((task) => task.warningLevel === 'RED') || tasks.find((task) => task.warningLevel === 'ORANGE')
   const currentLevel = commandTask?.warningLevel || 'BLUE'
   const level = levelStyle[currentLevel]
 
-  const tabProps = {
+  const tabProps: TabStateProps = {
     commandTask,
     currentLevel,
     integrationStatus,
-    isYoloRunning,
     level,
+    liveFusion,
     modelStatus,
-    runYolo,
     setIsModalOpen,
     setSelectedTask,
-    setYoloImage,
     tasks,
-    yoloError,
-    yoloImage,
-    yoloResult,
   }
 
   return (
@@ -196,16 +170,16 @@ export default function Home() {
                 <p className="text-sm font-medium text-emerald-300">天眼护象 · 监测-预警-处警一体化</p>
                 <h1 className="mt-2 text-3xl font-bold tracking-tight">象群入侵风险智能研判与警情联动大屏</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-                  接入气象、地理信息、无人机检测、历史项圈轨迹和环境遥感数据，构建基于时间与空间的三维立体分析数据，滚动预测 30 分钟至 2 小时内入侵概率。
+                  接入地图、DJI 司空 / FlightHub 2、实时热成像和 AI 分析接口，形成可配置、可追溯的实时研判链路。
                 </p>
                 <div className="mt-4 flex gap-2">
-                  <button onClick={fetchAll} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm hover:bg-white/20">
+                  <button onClick={refresh} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm hover:bg-white/20">
                     <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
                     刷新
                   </button>
                   <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center gap-2 rounded-md bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400">
                     <Plus size={16} />
-                    上传视频训练
+                    新建研判任务
                   </button>
                 </div>
               </div>
@@ -213,8 +187,8 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className={`rounded-full px-3 py-1 text-sm font-bold text-white ${level.bg}`}>{level.label}</span>
-                    <div className="mt-3 text-5xl font-black">{commandTask?.intrusionRisk ?? 18}</div>
-                    <p className="text-sm text-slate-300">入侵风险指数 · 预测窗口 {commandTask?.predictionWindow || '2 小时以上'}</p>
+                    <div className="mt-3 text-5xl font-black">{liveFusion?.analysis.intrusionRisk ?? commandTask?.intrusionRisk ?? 18}</div>
+                    <p className="text-sm text-slate-300">风险指数 · {liveFusion?.analysis.predictionWindow || commandTask?.predictionWindow || '待研判'}</p>
                   </div>
                   <ShieldAlert size={64} className={level.text} />
                 </div>
@@ -223,13 +197,13 @@ export default function Home() {
           </header>
 
           <section className="mb-5 grid grid-cols-4 gap-4">
-            <StatusTile icon={Database} label="警情/训练任务" value={stats.total} />
-            <StatusTile icon={Cpu} label="AI 处理中" value={stats.running} />
-            <StatusTile icon={UploadCloud} label="待处理队列" value={stats.pending} />
-            <StatusTile icon={BellRing} label="红橙重点预警" value={stats.high} />
+            <MetricTile icon={Database} label="研判任务" value={stats.total} />
+            <MetricTile icon={Cpu} label="运行中" value={stats.running} />
+            <MetricTile icon={UploadCloud} label="待处理" value={stats.pending} />
+            <MetricTile icon={BellRing} label="红橙预警" value={stats.high} />
           </section>
 
-          {activeTab === 'dashboard' ? <DashboardTab {...tabProps} latestTask={latestTask} /> : null}
+          {activeTab === 'dashboard' ? <DashboardTab {...tabProps} /> : null}
           {activeTab === 'warning' ? <WarningTab {...tabProps} /> : null}
           {activeTab === 'ai' ? <AiTab {...tabProps} /> : null}
           {activeTab === 'dispatch' ? <DispatchTab {...tabProps} /> : null}
@@ -246,41 +220,32 @@ export default function Home() {
   )
 }
 
-interface TabProps {
-  commandTask?: TrainingTask
-  currentLevel: WarningLevel
-  integrationStatus: IntegrationStatus
-  isYoloRunning: boolean
-  level: { label: string; bg: string; ring: string; text: string; bar: string; short: string }
-  modelStatus: ModelStatus
-  runYolo: () => Promise<void>
-  setIsModalOpen: (open: boolean) => void
-  setSelectedTask: (task: TrainingTask) => void
-  setYoloImage: (file: File | null) => void
-  tasks: TrainingTask[]
-  yoloError: string
-  yoloImage: File | null
-  yoloResult: string
-}
-
-function DashboardTab(props: TabProps & { latestTask?: TrainingTask }) {
+function DashboardTab(props: TabStateProps) {
   return (
     <>
       <section className="mb-5 grid grid-cols-[1.15fr_.85fr] gap-4">
         <Panel title="实时三维立体分析与分级预警" icon={BrainCircuit}>
-          <FusionGrid />
+          <LiveFusionPanel />
           <div className="mt-4">
             <ChinaMap markers={chinaMapMarkers} />
           </div>
-          <div className="mt-4 rounded-md bg-slate-50 p-4">
-            <p className="text-sm leading-6 text-slate-700">
-              {props.commandTask?.aiSummary || '等待无人机视频或边缘端识别结果接入后，系统将自动计算象群位置、速度、方向与村庄、农田、道路、边境线之间的空间关系，并输出入侵风险指数。'}
-            </p>
+          <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+            {props.liveFusion?.summary || props.commandTask?.aiSummary || '等待实时热成像源接入后，系统会自动拉取地图、DJI 与 AI 分析信息。'}
           </div>
-          <IntegrationBadges status={props.integrationStatus} />
         </Panel>
-
-        <ModelPanel {...props} />
+        <Panel title="当前模型状态与确认汇总" icon={CheckCircle2}>
+          <div className="grid grid-cols-2 gap-3">
+            <Metric label="模型版本" value={props.modelStatus.version} />
+            <Metric label="模型状态" value={props.modelStatus.status} />
+            <Metric label="mAP50" value={props.modelStatus.map50.toFixed(3)} />
+            <Metric label="Precision" value={props.modelStatus.precision.toFixed(3)} />
+            <Metric label="Recall" value={props.modelStatus.recall.toFixed(3)} />
+            <Metric label="样本图片" value={props.modelStatus.datasetImages} />
+          </div>
+          <div className="mt-4 rounded-md bg-slate-50 p-4 text-xs leading-5 text-slate-600">
+            当前模型状态会跟随实时研判结果更新，确认汇总后才写入模型状态。
+          </div>
+        </Panel>
       </section>
 
       <section className="mb-5 grid grid-cols-[.9fr_1.1fr] gap-4">
@@ -292,17 +257,18 @@ function DashboardTab(props: TabProps & { latestTask?: TrainingTask }) {
         </Panel>
       </section>
 
-      {props.latestTask ? <LatestTaskStages task={props.latestTask} onCreate={() => props.setIsModalOpen(true)} /> : null}
+      {props.tasks[0] ? <LatestTaskStages task={props.tasks[0]} onCreate={() => props.setIsModalOpen(true)} /> : null}
       <TaskGrid tasks={props.tasks} onView={props.setSelectedTask} />
     </>
   )
 }
 
-function WarningTab(props: TabProps) {
+function WarningTab(props: TabStateProps) {
   const grouped = (['RED', 'ORANGE', 'YELLOW', 'BLUE'] as WarningLevel[]).map((level) => ({
     level,
     tasks: props.tasks.filter((task) => task.warningLevel === level),
   }))
+
   return (
     <section className="grid grid-cols-[.85fr_1.15fr] gap-4">
       <Panel title="分级预警看板" icon={ShieldAlert}>
@@ -316,7 +282,7 @@ function WarningTab(props: TabProps) {
           ))}
         </div>
         <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-          {props.commandTask ? `${props.commandTask.name}：风险指数 ${props.commandTask.intrusionRisk}，预测窗口 ${props.commandTask.predictionWindow}。` : '暂无预警任务，等待训练或识别任务接入。'}
+          {props.commandTask ? `${props.commandTask.name}：风险指数 ${props.commandTask.intrusionRisk}` : '暂无预警任务，等待接入实时热成像。'}
         </div>
       </Panel>
       <Panel title="预警任务列表" icon={BellRing}>
@@ -326,26 +292,29 @@ function WarningTab(props: TabProps) {
   )
 }
 
-function AiTab(props: TabProps) {
+function AiTab(props: TabStateProps) {
   return (
     <section className="grid grid-cols-[1fr_.9fr] gap-4">
       <Panel title="AI 研判" icon={BrainCircuit}>
-        <FusionGrid />
-        <div className="mt-4 rounded-md bg-slate-50 p-4">
-          <p className="text-sm leading-6 text-slate-700">
-            {props.commandTask?.aiSummary || 'AI 分析会在创建训练任务时触发。配置 OPENAI_API_KEY 后使用真实模型；未配置时保留规则兜底，页面会明确显示待配置状态。'}
-          </p>
+        <LiveFusionPanel />
+        <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+          {props.liveFusion?.analysis.aiSummary || 'AI 分析将读取实时热成像、地图和 DJI 接入配置。'}
         </div>
-        <IntegrationBadges status={props.integrationStatus} />
       </Panel>
-      <Panel title="真实 YOLO 检测" icon={ScanSearch}>
-        <YoloBox {...props} />
+      <Panel title="接口状态" icon={Database}>
+        <div className="space-y-3">
+          <StatusRow name="地图" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} />
+          <StatusRow name="AI" value={props.integrationStatus?.ai.endpoint || '未加载'} configured={props.integrationStatus?.ai.configured || false} />
+          <StatusRow name="DJI" value={props.integrationStatus?.dji.endpoint || '未加载'} configured={props.integrationStatus?.dji.configured || false} />
+          <StatusRow name="YOLO" value={props.integrationStatus?.yolo.endpoint || '未加载'} configured={props.integrationStatus?.yolo.configured || false} />
+          <StatusRow name="热成像" value={props.integrationStatus?.thermal.source || '未加载'} configured={props.integrationStatus?.thermal.configured || false} />
+        </div>
       </Panel>
     </section>
   )
 }
 
-function DispatchTab(props: TabProps) {
+function DispatchTab(props: TabStateProps) {
   return (
     <section className="grid grid-cols-[.9fr_1.1fr] gap-4">
       <Panel title="处警联动流程" icon={Radar}>
@@ -355,13 +324,13 @@ function DispatchTab(props: TabProps) {
         </div>
       </Panel>
       <Panel title="分级处置预案" icon={Route}>
-        <DispatchGrid task={props.commandTask} level={props.currentLevel} levelBg={props.level.bg} />
+        <DispatchGrid task={undefined} level={props.currentLevel} levelBg={props.level.bg} />
       </Panel>
     </section>
   )
 }
 
-function HistoryTab(props: TabProps) {
+function HistoryTab(props: TabStateProps) {
   const completed = props.tasks.filter((task) => task.status === 'COMPLETED' || task.aggregatedAt)
   return (
     <section className="grid grid-cols-[1fr_1fr] gap-4">
@@ -388,77 +357,72 @@ function HistoryTab(props: TabProps) {
   )
 }
 
-function SettingsTab(props: TabProps) {
+function SettingsTab(props: TabStateProps) {
   return (
     <section className="grid grid-cols-[1fr_1fr] gap-4">
       <Panel title="系统设置" icon={Database}>
         <div className="space-y-3">
-          <IntegrationRow name="中国地图 API" configured={props.integrationStatus.amap.configured} detail={props.integrationStatus.amap.provider} />
-          <IntegrationRow name="AI 分析接口" configured={props.integrationStatus.ai.configured} detail={props.integrationStatus.ai.provider} />
-          <IntegrationRow name="YOLO 服务" configured={props.integrationStatus.yolo.configured} detail={`${props.integrationStatus.yolo.provider} / ${props.integrationStatus.yolo.weights}`} />
+          <StatusRow name="中国地图 API" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} />
+          <StatusRow name="AI 分析接口" value={`${props.integrationStatus?.ai.provider || '未加载'} / ${props.integrationStatus?.ai.endpoint || '未配置'}`} configured={props.integrationStatus?.ai.configured || false} />
+          <StatusRow name="DJI 司空 / FlightHub 2" value={`${props.integrationStatus?.dji.provider || '未加载'} / ${props.integrationStatus?.dji.endpoint || '未配置'}`} configured={props.integrationStatus?.dji.configured || false} />
+          <StatusRow name="YOLO 服务" value={`${props.integrationStatus?.yolo.provider || '未加载'} / ${props.integrationStatus?.yolo.endpoint || '未配置'}`} configured={props.integrationStatus?.yolo.configured || false} />
+          <StatusRow name="实时热成像" value={`${props.integrationStatus?.thermal.provider || '未加载'} / ${props.integrationStatus?.thermal.source || '未配置'}`} configured={props.integrationStatus?.thermal.configured || false} />
         </div>
-        <div className="mt-4 rounded-md bg-slate-50 p-4 text-xs leading-5 text-slate-600">
-          Vercel 环境变量：NEXT_PUBLIC_AMAP_KEY、OPENAI_API_KEY、YOLO_SERVICE_URL。YOLO 长时间训练建议保留在 GPU worker 或独立推理服务。
+        <div className="mt-4">
+          <IntegrationSettings />
         </div>
       </Panel>
-      <ModelPanel {...props} />
+      <Panel title="实时研判状态" icon={CheckCircle2}>
+        <LiveFusionPanel />
+      </Panel>
     </section>
   )
 }
 
-function FusionGrid() {
+function TaskGrid({ tasks, onView, compact = false }: { tasks: TrainingTask[]; onView: (task: TrainingTask) => void; compact?: boolean }) {
+  if (!tasks.length) {
+    return <div className="rounded-lg border border-dashed border-slate-300 bg-white py-12 text-center text-slate-500">暂无任务，等待实时研判接入。</div>
+  }
   return (
-    <div className="grid grid-cols-4 gap-3">
-      {fusionSources.map((source) => {
-        const Icon = source.icon
-        return (
-          <div key={source.title} className="rounded-md border border-slate-200 bg-white p-3">
-            <Icon size={20} className="mb-2 text-emerald-700" />
-            <strong className="text-sm text-slate-900">{source.title}</strong>
-            <p className="mt-1 text-xs leading-5 text-slate-500">{source.desc}</p>
-          </div>
-        )
-      })}
+    <section className={compact ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-3 gap-4'}>
+      {tasks.map((task) => (
+        <TaskCard key={task.id} task={task} onView={onView} />
+      ))}
+    </section>
+  )
+}
+
+function DispatchGrid({ task, level, levelBg }: { task?: TrainingTask; level: WarningLevel; levelBg: string }) {
+  const items =
+    task?.dispatchPlan ||
+    ({
+      RED: ['立即疏散群众', '实施交通管制', '专业救助力量调派', '指挥中心全程留痕'],
+      ORANGE: ['巡护力量前置', '村寨联络员提醒', '无人机复飞跟踪', '准备交通劝导'],
+      YELLOW: ['持续观察 1-2 小时', '核对历史轨迹', '村民端注意提醒', '保留升级规则'],
+      BLUE: ['常态监测', '记录位置方向', '订阅项圈轨迹', '无需立即处警'],
+    }[level] || [])
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {items.map((item, index) => (
+        <div key={item} className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700">
+          <span className={`mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ${levelBg}`}>{index + 1}</span>
+          {item}
+        </div>
+      ))}
     </div>
   )
 }
 
-function ModelPanel(props: TabProps) {
+function ProcessFlow({ level }: { level: WarningLevel }) {
+  const steps = ['边缘感知', '融合研判', `${levelStyle[level].label}推送`, '处警调度', '留痕复盘']
   return (
-    <Panel title="当前模型状态与确认汇总" icon={CheckCircle2}>
-      <div className="grid grid-cols-2 gap-3">
-        <Metric label="模型版本" value={props.modelStatus.version} />
-        <Metric label="模型状态" value={props.modelStatus.status} />
-        <Metric label="mAP50" value={props.modelStatus.map50.toFixed(3)} />
-        <Metric label="Precision" value={props.modelStatus.precision.toFixed(3)} />
-        <Metric label="Recall" value={props.modelStatus.recall.toFixed(3)} />
-        <Metric label="训练图片" value={props.modelStatus.datasetImages} />
-      </div>
-      <div className="mt-4">
-        <YoloBox {...props} />
-      </div>
-      <p className="mt-3 rounded-md bg-slate-50 p-3 text-xs leading-5 text-slate-500">训练完成后不会直接覆盖模型状态，必须在弹窗中点击确认后才汇总到当前模型。</p>
-    </Panel>
-  )
-}
-
-function YoloBox(props: TabProps) {
-  return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <ScanSearch size={16} />
-        YOLO 图片检测
-      </div>
-      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-600 hover:bg-slate-50">
-        <UploadCloud size={18} />
-        {props.yoloImage ? props.yoloImage.name : '上传图片后运行真实 YOLO'}
-        <input type="file" accept="image/*" className="hidden" onChange={(event) => props.setYoloImage(event.target.files?.[0] || null)} />
-      </label>
-      <button onClick={props.runYolo} disabled={props.isYoloRunning} className="mt-3 w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60">
-        {props.isYoloRunning ? 'YOLO 检测中...' : '运行 YOLO 检测'}
-      </button>
-      {props.yoloError ? <p className="mt-3 text-sm text-red-600">{props.yoloError}</p> : null}
-      {props.yoloResult ? <pre className="mt-3 max-h-40 overflow-auto rounded-md bg-slate-950 p-3 text-xs text-slate-100">{props.yoloResult}</pre> : null}
+    <div className="grid grid-cols-5 gap-2">
+      {steps.map((step, index) => (
+        <div key={step} className="rounded-md bg-slate-50 p-3 text-center">
+          <div className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white ${levelStyle[level].bg}`}>{index + 1}</div>
+          <div className="text-sm font-medium text-slate-800">{step}</div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -467,10 +431,10 @@ function LatestTaskStages({ task, onCreate }: { task: TrainingTask; onCreate: ()
   return (
     <section className="mb-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">最新 AI 识别全过程</h2>
+        <h2 className="text-lg font-semibold text-slate-900">最新研判流程</h2>
         <button onClick={onCreate} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
           <Plus size={16} />
-          上传视频训练
+          新建任务
         </button>
       </div>
       <div className="grid grid-cols-5 gap-3">
@@ -490,42 +454,6 @@ function LatestTaskStages({ task, onCreate }: { task: TrainingTask; onCreate: ()
   )
 }
 
-function TaskGrid({ tasks, onView, compact = false }: { tasks: TrainingTask[]; onView: (task: TrainingTask) => void; compact?: boolean }) {
-  if (!tasks.length) {
-    return <div className="rounded-lg border border-dashed border-slate-300 bg-white py-12 text-center text-slate-500">暂无警情训练任务。点击“上传视频训练”创建第一个动态训练与分级预警任务。</div>
-  }
-  return (
-    <section className={compact ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-3 gap-4'}>
-      {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} onView={onView} />
-      ))}
-    </section>
-  )
-}
-
-function DispatchGrid({ task, level, levelBg }: { task?: TrainingTask; level: WarningLevel; levelBg: string }) {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {(task?.dispatchPlan || defaultDispatch(level)).map((item, index) => (
-        <div key={item} className="rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700">
-          <span className={`mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ${levelBg}`}>{index + 1}</span>
-          {item}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function IntegrationBadges({ status }: { status: IntegrationStatus }) {
-  return (
-    <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-      <span className="rounded-full bg-slate-100 px-2 py-1">地图: {status.amap.configured ? '已接入' : '待配置'}</span>
-      <span className="rounded-full bg-slate-100 px-2 py-1">AI: {status.ai.configured ? '已接入' : '待配置'}</span>
-      <span className="rounded-full bg-slate-100 px-2 py-1">YOLO: {status.yolo.configured ? '已接入' : '待配置'}</span>
-    </div>
-  )
-}
-
 function IntegrationRow({ name, configured, detail }: { name: string; configured: boolean; detail: string }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-md bg-slate-50 p-3">
@@ -540,6 +468,10 @@ function IntegrationRow({ name, configured, detail }: { name: string; configured
   )
 }
 
+function StatusRow({ name, value, configured }: { name: string; value: string; configured: boolean }) {
+  return <IntegrationRow name={name} detail={value} configured={configured} />
+}
+
 function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -552,7 +484,7 @@ function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIco
   )
 }
 
-function StatusTile({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
+function MetricTile({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <Icon size={20} className="mb-3 text-slate-700" />
@@ -571,29 +503,6 @@ function Metric({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-function ProcessFlow({ level }: { level: WarningLevel }) {
-  const steps = ['边缘感知', '融合研判', `${levelStyle[level].label}推送`, '处警调度', '留痕复盘']
-  return (
-    <div className="grid grid-cols-5 gap-2">
-      {steps.map((step, index) => (
-        <div key={step} className="rounded-md bg-slate-50 p-3 text-center">
-          <div className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white ${levelStyle[level].bg}`}>{index + 1}</div>
-          <div className="text-sm font-medium text-slate-800">{step}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function defaultDispatch(level: WarningLevel) {
-  return {
-    RED: ['立即疏散群众', '实施交通管制', '专业救助力量调派', '指挥中心全程留痕'],
-    ORANGE: ['巡护力量前置', '村寨联络员提醒', '无人机复飞跟踪', '准备交通劝导'],
-    YELLOW: ['持续观察 1-2 小时', '核对历史轨迹', '村民端注意提醒', '保留升级规则'],
-    BLUE: ['常态监测', '记录位置方向', '订阅项圈轨迹', '无需立即处警'],
-  }[level]
-}
-
 function WarningPopup({ task, onClose }: { task: TrainingTask; onClose: () => void }) {
   const style = levelStyle[task.warningLevel]
   return (
@@ -601,8 +510,8 @@ function WarningPopup({ task, onClose }: { task: TrainingTask; onClose: () => vo
       <div className="flex gap-3">
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white ${style.bg}`}>{style.short}</div>
         <div>
-          <strong className="text-slate-900">{style.label}弹窗通知</strong>
-          <p className="mt-1 text-sm leading-5 text-slate-600">{task.name}，入侵风险指数 {task.intrusionRisk}，预测窗口 {task.predictionWindow}。</p>
+          <strong className="text-slate-900">{style.label}通知</strong>
+          <p className="mt-1 text-sm leading-5 text-slate-600">{task.name}，风险指数 {task.intrusionRisk}，预测窗口 {task.predictionWindow}。</p>
           <button onClick={onClose} className="mt-3 rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white">确认接收</button>
         </div>
       </div>
@@ -618,21 +527,20 @@ function TrainingResultModal({ task, onConfirm, onClose }: { task: TrainingTask;
         <div className="mb-4 flex items-center justify-between">
           <div>
             <span className={`rounded-full px-3 py-1 text-sm font-bold text-white ${style.bg}`}>{style.label}</span>
-            <h2 className="mt-3 text-xl font-bold text-slate-900">训练测试结果待确认</h2>
+            <h2 className="mt-3 text-xl font-bold text-slate-900">结果待确认</h2>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-900">关闭</button>
         </div>
         <p className="mb-4 text-sm leading-6 text-slate-600">{task.aiSummary}</p>
         <div className="mb-4 grid grid-cols-4 gap-3">
-          <Metric label="入侵风险" value={task.intrusionRisk} />
+          <Metric label="风险" value={task.intrusionRisk} />
           <Metric label="mAP50" value={String(task.metrics?.mAP50 ?? '-')} />
           <Metric label="Precision" value={String(task.metrics?.precision ?? '-')} />
           <Metric label="Recall" value={String(task.metrics?.recall ?? '-')} />
         </div>
-        <div className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">点击确认后，系统才会把本次训练测试指标汇总到“当前模型状态”。</div>
         <div className="mt-5 flex justify-end gap-3">
           <button onClick={onClose} className="rounded-md border border-slate-300 px-4 py-2">暂不汇总</button>
-          <button onClick={onConfirm} className="rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">确认并汇总到模型</button>
+          <button onClick={onConfirm} className="rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">确认并汇总</button>
         </div>
       </div>
     </div>

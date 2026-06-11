@@ -65,8 +65,8 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
       <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">创建训练任务</h2>
-            <p className="mt-1 text-sm text-slate-500">上传视频后会先做 AI 研判，再进入 YOLO 训练流程。</p>
+            <h2 className="text-xl font-bold text-slate-900">创建研判任务</h2>
+            <p className="mt-1 text-sm text-slate-500">上传热成像视频后会先做 AI 研判，再进入后台推理流程。</p>
           </div>
           <button onClick={onClose} className="rounded-md p-1 hover:bg-slate-100" type="button">
             <X size={20} />
@@ -81,7 +81,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
               value={formData.name}
               onChange={(event) => setFormData({ ...formData, name: event.target.value })}
               className="w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              placeholder="例如：西双版纳夜间热成像训练"
+              placeholder="例如：西双版纳夜间热成像研判"
             />
           </div>
 
@@ -137,7 +137,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">训练轮数</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">研判轮次</label>
               <input
                 type="number"
                 min="1"
@@ -178,7 +178,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
               取消
             </button>
             <button type="submit" disabled={isSubmitting} className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60">
-              {isSubmitting ? '提交中...' : '创建训练任务'}
+              {isSubmitting ? '提交中...' : '创建研判任务'}
             </button>
           </div>
         </form>

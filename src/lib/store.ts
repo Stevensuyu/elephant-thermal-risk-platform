@@ -65,15 +65,15 @@ const dbPath = path.join(storageDir, 'training-db.json')
 
 const defaultModelStatus: ModelStatus = {
   version: 'YOLOv8n-elephant-thermal',
-  status: '等待训练任务',
+  status: '等待研判任务',
   datasetImages: 6137,
   classes: 7,
   map50: 0.587,
   elephantMap50: 0.989,
   precision: 0.976,
   recall: 0.973,
-  source: '多源热成像基线模型',
-  lastUpdated: '基线模型',
+  source: '实时热成像基线',
+  lastUpdated: '基线状态',
 }
 
 export function defaultStages(active: number = -1): TrainingStage[] {
@@ -81,7 +81,7 @@ export function defaultStages(active: number = -1): TrainingStage[] {
     ['upload', '视频接收'],
     ['frames', '抽帧分析'],
     ['label', '自动预标注'],
-    ['train', 'YOLO 训练'],
+    ['train', '模型推理'],
     ['sync', '结果同步'],
   ]
   return names.map(([key, name], index) => ({
@@ -121,7 +121,7 @@ export async function readDb(): Promise<DbShape> {
     warningLevel: task.warningLevel || 'BLUE',
     intrusionRisk: Number(task.intrusionRisk || 18),
     predictionWindow: task.predictionWindow || '2 小时以上',
-    aiSummary: task.aiSummary || '等待 AI 分析结果。',
+    aiSummary: task.aiSummary || '等待 AI 研判结果。',
     dispatchPlan: task.dispatchPlan?.length ? task.dispatchPlan : ['持续监测', '核验位置', '记录轨迹', '等待升级规则'],
     analysisMode: task.analysisMode || 'heuristic',
     analysisSource: task.analysisSource || 'legacy-db',
@@ -194,7 +194,7 @@ export async function updateTask(id: string, patch: Partial<TrainingTask>) {
     db.tasks[index].needsModelConfirm = true
     db.modelStatus = {
       ...db.modelStatus,
-      status: `${levelText(db.tasks[index].warningLevel)}训练完成，等待确认汇总`,
+      status: `${levelText(db.tasks[index].warningLevel)}结果完成，等待确认汇总`,
       pendingTaskId: db.tasks[index].id,
       source: db.tasks[index].name,
       lastUpdated: new Date().toISOString(),
@@ -202,7 +202,7 @@ export async function updateTask(id: string, patch: Partial<TrainingTask>) {
   } else if (patch.status === 'RUNNING') {
     db.modelStatus = {
       ...db.modelStatus,
-      status: `${levelText(db.tasks[index].warningLevel)}训练中 ${Math.round(Number(patch.progress ?? db.tasks[index].progress))}%`,
+      status: `${levelText(db.tasks[index].warningLevel)}处理中 ${Math.round(Number(patch.progress ?? db.tasks[index].progress))}%`,
       source: db.tasks[index].name,
       lastUpdated: new Date().toISOString(),
     }

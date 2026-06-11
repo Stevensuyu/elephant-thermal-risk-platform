@@ -71,7 +71,7 @@ export default function TaskCard({ task, onView }: TaskCardProps) {
       </div>
 
       {task.needsModelConfirm ? (
-        <div className="mb-4 rounded-md bg-emerald-50 p-3 text-xs font-medium text-emerald-700">训练结果已生成，等待确认后汇总到当前模型。</div>
+        <div className="mb-4 rounded-md bg-emerald-50 p-3 text-xs font-medium text-emerald-700">结果已生成，等待确认后汇总到当前模型。</div>
       ) : null}
 
       <button onClick={() => onView(task)} className="w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800">
