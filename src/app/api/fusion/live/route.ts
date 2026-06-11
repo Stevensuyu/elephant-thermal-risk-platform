@@ -12,6 +12,16 @@ export async function GET() {
   const modelStatus = db.modelStatus
   const latestTask = db.tasks[0]
   const activeTask = latestTask || db.tasks.find((task) => task.status === 'RUNNING') || db.tasks.find((task) => ['RED', 'ORANGE'].includes(task.warningLevel))
+  const connectionSummary = [
+    { name: '地图', configured: Boolean(integrations.map.apiKey), endpoint: '高德地图 JS API' },
+    { name: 'AI', configured: Boolean(integrations.ai.apiKey), endpoint: integrations.ai.baseUrl || '未配置' },
+    { name: 'DJI', configured: Boolean(integrations.dji.cloudApiBaseUrl || integrations.dji.openApiBaseUrl), endpoint: integrations.dji.cloudApiBaseUrl || integrations.dji.openApiBaseUrl || '未配置' },
+    { name: 'YOLO', configured: Boolean(integrations.yolo.serviceUrl), endpoint: integrations.yolo.serviceUrl || '未配置' },
+    { name: '热成像', configured: Boolean(integrations.thermal.streamUrl || integrations.thermal.snapshotUrl), endpoint: integrations.thermal.streamUrl || integrations.thermal.snapshotUrl || '未配置' },
+  ].map((item) => ({
+    ...item,
+    status: item.configured ? '已配置' : '待配置',
+  }))
 
   const analysis = await analyzeTaskInput({
     name: '实时热成像研判',
@@ -49,6 +59,7 @@ export async function GET() {
       predictionWindow: activeTask.predictionWindow,
       updatedAt: activeTask.updatedAt,
     } : null,
+    connectionSummary,
     analysis,
     summary: analysis.aiSummary,
   })

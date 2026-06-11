@@ -10,6 +10,7 @@ type LiveFusion = {
   yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
   modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
   latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
+  connectionSummary: Array<{ name: string; configured: boolean; endpoint: string; status: string }>
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
   summary: string
 }
@@ -65,6 +66,20 @@ export default function LiveFusionPanel() {
           <div className="mt-1">名称：{data.latestTask.name}</div>
           <div>状态：{data.latestTask.status} · {data.latestTask.warningLevel} · {data.latestTask.intrusionRisk}</div>
           <div>窗口：{data.latestTask.predictionWindow}</div>
+        </div>
+      ) : null}
+
+      {data?.connectionSummary?.length ? (
+        <div className="rounded-md bg-white p-3 text-xs text-slate-600">
+          <div className="text-sm font-medium text-slate-900">链路清单</div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {data.connectionSummary.map((item) => (
+              <div key={item.name} className="rounded-md bg-slate-50 p-2">
+                <div className="font-semibold text-slate-900">{item.name}</div>
+                <div className="mt-1">{item.status} · {item.endpoint}</div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
