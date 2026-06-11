@@ -93,15 +93,6 @@ export default function LiveFusionPanel() {
         <div className="rounded-md bg-white p-3 text-xs text-slate-600">
           <div className="text-sm font-medium text-slate-900">采集结果</div>
           <div className="mt-1">{data.acquisitionSummary || '暂无采集摘要'}</div>
-          <div className="mt-2 space-y-2">
-            {data.acquisitionResults.map((item) => (
-              <div key={item.endpoint} className="rounded-md bg-slate-50 p-2">
-                <div className="font-semibold text-slate-900">{item.ok ? '已获取' : '未获取'} · {item.status}</div>
-                <div className="mt-1 break-all">{item.endpoint}</div>
-                {item.preview ? <div className="mt-1 text-slate-500">{item.preview}</div> : null}
-              </div>
-            ))}
-          </div>
         </div>
       ) : null}
 
