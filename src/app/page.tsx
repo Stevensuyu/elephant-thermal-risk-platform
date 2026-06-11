@@ -200,10 +200,10 @@ export default function Home() {
             <div className="border-t border-white/10 px-6 py-3 text-sm text-slate-300">
               {liveFusion ? (
                 <span>
-                  采集：{liveFusion.acquisitionSummary || '0/0'} · 当前任务：{liveFusion.latestTask?.name || '暂无'} · 风险窗口：{liveFusion.analysis.predictionWindow || '待研判'}
+                  采集 {liveFusion.acquisitionSummary || '0/0'} · 任务 {liveFusion.latestTask?.name || '暂无'} · 风险 {liveFusion.analysis.predictionWindow || '待研判'}
                 </span>
               ) : (
-                <span>采集：加载中 · 当前任务：加载中 · 风险窗口：加载中</span>
+                <span>采集中 · 任务加载中 · 风险研判中</span>
               )}
             </div>
           </header>
