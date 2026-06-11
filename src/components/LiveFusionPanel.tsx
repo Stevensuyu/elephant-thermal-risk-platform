@@ -8,6 +8,7 @@ type LiveFusion = {
   dji: { providerName: string; cloudApiBaseUrl: string; openApiBaseUrl: string; websocketUrl: string }
   map: { apiKey: string }
   yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
+  modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
   summary: string
 }
@@ -49,6 +50,7 @@ export default function LiveFusionPanel() {
         <Mini icon={Radar} label="风险" value={data ? `${data.analysis.warningLevel} / ${data.analysis.intrusionRisk}` : '未加载'} />
         <Mini icon={MapPinned} label="地图" value={data?.map.apiKey ? '已接入' : '待配置'} />
         <Mini icon={Activity} label="热成像" value={data?.thermal.streamUrl || data?.thermal.snapshotUrl ? '在线' : '未接入'} />
+        <Mini icon={Satellite} label="模型" value={data?.modelStatus?.status || '未加载'} />
       </div>
 
       <div className="rounded-md bg-white p-3">
@@ -61,6 +63,8 @@ export default function LiveFusionPanel() {
         <div className="rounded-md bg-white p-3">YOLO：{data?.yolo?.configured ? data.yolo.providerName : '未配置'}</div>
         <div className="rounded-md bg-white p-3">热成像：{data?.thermal.streamUrl || data?.thermal.snapshotUrl ? data.thermal.sourceName : '未配置'}</div>
         <div className="rounded-md bg-white p-3">地图：{data?.map.apiKey ? '高德已接入' : '未配置'}</div>
+        <div className="rounded-md bg-white p-3">状态源：{data?.modelStatus?.source || '未配置'}</div>
+        <div className="rounded-md bg-white p-3">更新时间：{data?.modelStatus?.lastUpdated || '未更新'}</div>
       </div>
     </div>
   )

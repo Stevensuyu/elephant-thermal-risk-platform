@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
 import { analyzeTaskInput } from '@/lib/analysis'
 import { readIntegrations } from '@/lib/integrations'
+import { readDb } from '@/lib/store'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   const integrations = await readIntegrations()
+  const db = await readDb()
+  const modelStatus = db.modelStatus
 
   const analysis = await analyzeTaskInput({
     name: '实时热成像研判',
@@ -15,6 +18,7 @@ export async function GET() {
       `DJI：${integrations.dji.cloudApiBaseUrl || integrations.dji.openApiBaseUrl || '未配置'}`,
       `热成像：${integrations.thermal.streamUrl || integrations.thermal.snapshotUrl || '未配置'}`,
       `YOLO 服务：${integrations.yolo.serviceUrl || '未配置'}`,
+      `模型状态：${modelStatus.status}`,
     ].join('；'),
     videoUrl: integrations.thermal.snapshotUrl || integrations.thermal.streamUrl || '',
     modelType: 'ai-fusion',
@@ -31,6 +35,7 @@ export async function GET() {
       serviceUrl: integrations.yolo.serviceUrl,
       weights: integrations.yolo.weights,
     },
+    modelStatus,
     analysis,
     summary: analysis.aiSummary,
   })
