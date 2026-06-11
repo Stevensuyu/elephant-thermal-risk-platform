@@ -380,6 +380,7 @@ function SettingsTab(props: TabStateProps) {
           <StatusRow name="DJI 司空 / FlightHub 2" value={`${props.integrationStatus?.dji.provider || '未加载'} / ${props.integrationStatus?.dji.endpoint || '未配置'}`} configured={props.integrationStatus?.dji.configured || false} reachable={props.integrationStatus?.dji.reachable} />
           <StatusRow name="YOLO 服务" value={`${props.integrationStatus?.yolo.provider || '未加载'} / ${props.integrationStatus?.yolo.endpoint || '未配置'}`} configured={props.integrationStatus?.yolo.configured || false} reachable={props.integrationStatus?.yolo.reachable} />
           <StatusRow name="实时热成像" value={`${props.integrationStatus?.thermal.provider || '未加载'} / ${props.integrationStatus?.thermal.source || '未配置'}`} configured={props.integrationStatus?.thermal.configured || false} reachable={props.integrationStatus?.thermal.reachable} />
+          <StatusRow name="三维分析" value={`${props.integrationStatus?.threeD?.provider || '未加载'} / ${props.integrationStatus?.threeD?.endpoint || '未配置'}`} configured={props.integrationStatus?.threeD?.configured || false} reachable={props.integrationStatus?.threeD?.reachable} />
         </div>
         <div className="mt-4">
           <IntegrationSettings />
