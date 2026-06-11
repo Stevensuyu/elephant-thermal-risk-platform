@@ -56,6 +56,13 @@ export async function GET() {
     fetchProbe(integrations.yolo.serviceUrl || '', 'GET'),
   ])
   const acquiredCount = acquisitionResults.filter((item) => item?.ok).length
+  const acquisitionByName = {
+    map: acquisitionResults[0],
+    ai: acquisitionResults[1],
+    dji: acquisitionResults[2],
+    thermal: acquisitionResults[3],
+    yolo: acquisitionResults[4],
+  }
 
   const analysis = await analyzeTaskInput({
     name: '实时热成像研判',
@@ -94,6 +101,7 @@ export async function GET() {
       updatedAt: activeTask.updatedAt,
     } : null,
     connectionSummary,
+    acquisitionByName,
     acquisitionResults,
     acquisitionSummary: `${acquiredCount}/${acquisitionResults.length} 项已获取到外部响应`,
     analysis,

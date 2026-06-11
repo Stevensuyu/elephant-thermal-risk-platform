@@ -11,6 +11,7 @@ type LiveFusion = {
   modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
   latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   connectionSummary: Array<{ name: string; configured: boolean; endpoint: string; status: string }>
+  acquisitionByName: Record<string, { ok: boolean; status: number; endpoint: string; preview: string } | null>
   acquisitionSummary: string
   acquisitionResults: Array<{ ok: boolean; status: number; endpoint: string; preview: string }> | null
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
@@ -79,6 +80,9 @@ export default function LiveFusionPanel() {
               <div key={item.name} className="rounded-md bg-slate-50 p-2">
                 <div className="font-semibold text-slate-900">{item.name}</div>
                 <div className="mt-1">{item.status} · {item.endpoint}</div>
+                <div className="mt-1 text-slate-500">
+                  {data.acquisitionByName?.[item.name === '地图' ? 'map' : item.name === 'AI' ? 'ai' : item.name === 'DJI' ? 'dji' : item.name === '热成像' ? 'thermal' : 'yolo']?.ok ? '已采集' : '未采集'}
+                </div>
               </div>
             ))}
           </div>
