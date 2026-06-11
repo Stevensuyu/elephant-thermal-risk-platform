@@ -81,7 +81,7 @@ export function defaultStages(active: number = -1): TrainingStage[] {
     ['upload', '视频接收'],
     ['frames', '抽帧分析'],
     ['label', '自动预标注'],
-    ['train', '模型推理'],
+    ['train', '结果同步'],
     ['sync', '结果同步'],
   ]
   return names.map(([key, name], index) => ({

@@ -20,7 +20,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       <div className="mb-8 rounded-lg bg-white/10 p-4">
         <div className="text-sm font-medium text-emerald-300">SkyGuard Elephant</div>
         <div className="mt-1 text-2xl font-black tracking-tight">天眼护象</div>
-        <p className="mt-2 text-xs leading-5 text-slate-300">无人机热成像、边缘 AI、分级预警与跨部门警情联动。</p>
+        <p className="mt-2 text-xs leading-5 text-slate-300">热成像、AI 研判、分级预警与联动处置。</p>
       </div>
       <nav className="space-y-2">
         {menuItems.map((item) => {

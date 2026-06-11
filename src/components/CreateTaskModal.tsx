@@ -66,7 +66,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">创建研判任务</h2>
-            <p className="mt-1 text-sm text-slate-500">上传热成像视频后会先做 AI 研判，再进入后台推理流程。</p>
+            <p className="mt-1 text-sm text-slate-500">上传热成像视频后会先做 AI 研判，再进入后台处理流程。</p>
           </div>
           <button onClick={onClose} className="rounded-md p-1 hover:bg-slate-100" type="button">
             <X size={20} />

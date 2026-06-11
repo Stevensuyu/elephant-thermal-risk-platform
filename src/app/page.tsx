@@ -203,7 +203,7 @@ export default function Home() {
                   采集 {liveFusion.acquisitionSummary || '0/0'} · 任务 {liveFusion.latestTask?.name || '暂无'} · 风险 {liveFusion.analysis.predictionWindow || '待研判'}
                 </span>
               ) : (
-                <span>采集中 · 任务加载中 · 风险研判中</span>
+                <span>采集中 · 任务加载中 · 风险评估中</span>
               )}
             </div>
           </header>

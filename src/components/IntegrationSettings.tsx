@@ -111,7 +111,7 @@ export default function IntegrationSettings() {
         <Field title="YOLO 权重" note="仅作服务端引用">
           {input(config.yolo.weights, (weights) => setConfig({ ...config, yolo: { ...config.yolo, weights } }))}
         </Field>
-        <Field title="YOLO 服务名" note="可改成云推理平台">
+        <Field title="YOLO 服务名" note="可改成云服务平台">
           {input(config.yolo.providerName, (providerName) => setConfig({ ...config, yolo: { ...config.yolo, providerName } }))}
         </Field>
       </section>

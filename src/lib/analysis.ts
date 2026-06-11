@@ -44,7 +44,7 @@ function heuristicAnalysis(input: TaskLikeInput): AnalysisResult {
     YELLOW: ['推送黄色关注提醒', '持续观察 1-2 小时并核对历史轨迹', '核验水源距离、地形遮挡和道路通道', '向村民端发送注意避让信息'],
     BLUE: ['进入蓝色常态监测', '记录位置、方向和速度', '保持无人机与巡圈轨迹数据订阅', '无需立即处警，保留自动升级规则'],
   }[warningLevel]
-  const aiSummary = `融合无人机检测、气象、地理与历史轨迹后，系统识别出目标规模约 ${herdSize} 头，最近村庄 ${Math.round(distanceVillage)} 米，最近农田 ${Math.round(distanceFarm)} 米，最近边界线 ${Math.round(distanceBorder)} 米，移动速度 ${speed.toFixed(1)} m/s。入侵风险指数 ${intrusionRisk}，预测窗口 ${predictionWindow}。`
+  const aiSummary = `融合热成像回传、气象、地理与历史轨迹后，系统识别出目标规模约 ${herdSize} 头，最近村庄 ${Math.round(distanceVillage)} 米，最近农田 ${Math.round(distanceFarm)} 米，最近边界线 ${Math.round(distanceBorder)} 米，移动速度 ${speed.toFixed(1)} m/s。入侵风险指数 ${intrusionRisk}，预测窗口 ${predictionWindow}。`
   return {
     warningLevel,
     intrusionRisk,
