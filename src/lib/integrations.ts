@@ -43,11 +43,11 @@ export interface IntegrationConfig {
 }
 
 export interface IntegrationStatus {
-  map: { configured: boolean; provider: string }
-  ai: { configured: boolean; provider: string; endpoint: string }
-  dji: { configured: boolean; provider: string; endpoint: string }
-  yolo: { configured: boolean; provider: string; endpoint: string; weights: string }
-  thermal: { configured: boolean; provider: string; source: string }
+  map: { configured: boolean; provider: string; reachable?: boolean }
+  ai: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
+  dji: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
+  yolo: { configured: boolean; provider: string; endpoint: string; weights: string; reachable?: boolean }
+  thermal: { configured: boolean; provider: string; source: string; reachable?: boolean }
 }
 
 const defaultConfig: IntegrationConfig = {
@@ -87,6 +87,20 @@ const defaultConfig: IntegrationConfig = {
 
 function isConfigured(value: string | undefined | null) {
   return Boolean(value && String(value).trim())
+}
+
+async function probeUrl(url: string, method: 'HEAD' | 'GET' = 'HEAD') {
+  if (!isConfigured(url)) return false
+  const controller = new AbortController()
+  const timer = globalThis.setTimeout(() => controller.abort(), 2500)
+  try {
+    const response = await fetch(url, { method, signal: controller.signal, redirect: 'follow' })
+    return response.ok || response.status === 401 || response.status === 403
+  } catch {
+    return false
+  } finally {
+    globalThis.clearTimeout(timer)
+  }
 }
 
 async function ensureStore() {
@@ -135,32 +149,41 @@ export async function updateIntegrations(patch: Partial<IntegrationConfig>) {
 
 export async function getIntegrationStatus(): Promise<IntegrationStatus> {
   const config = await readIntegrations()
+  const mapReachable = await probeUrl('https://webapi.amap.com/maps?v=2.0', 'HEAD')
+  const aiReachable = await probeUrl(config.ai.baseUrl, 'HEAD')
+  const djiReachable = await probeUrl(config.dji.cloudApiBaseUrl || config.dji.openApiBaseUrl, 'HEAD')
+  const yoloReachable = await probeUrl(config.yolo.serviceUrl, 'HEAD')
+  const thermalReachable = await probeUrl(config.thermal.snapshotUrl || config.thermal.streamUrl, 'HEAD')
   return {
     map: {
       configured: isConfigured(config.map.apiKey),
       provider: 'AMap / 高德地图 JS API',
+      reachable: mapReachable,
     },
     ai: {
       configured: isConfigured(config.ai.apiKey),
       provider: config.ai.providerName || 'AI 分析接口',
       endpoint: config.ai.baseUrl || '未配置',
+      reachable: aiReachable,
     },
     dji: {
       configured: isConfigured(config.dji.cloudApiBaseUrl) || isConfigured(config.dji.openApiBaseUrl),
       provider: config.dji.providerName || 'DJI FlightHub 2',
       endpoint: config.dji.cloudApiBaseUrl || config.dji.openApiBaseUrl || '未配置',
+      reachable: djiReachable,
     },
     yolo: {
       configured: isConfigured(config.yolo.serviceUrl),
       provider: config.yolo.providerName || 'YOLO 服务',
       endpoint: config.yolo.serviceUrl || '未配置',
       weights: config.yolo.weights || 'yolov8n.pt',
+      reachable: yoloReachable,
     },
     thermal: {
       configured: isConfigured(config.thermal.streamUrl) || isConfigured(config.thermal.snapshotUrl),
       provider: config.thermal.sourceName || '实时热成像流',
       source: config.thermal.streamUrl || config.thermal.snapshotUrl || '未配置',
+      reachable: thermalReachable,
     },
   }
 }
-

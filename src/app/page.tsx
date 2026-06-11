@@ -25,15 +25,16 @@ import TaskCard from '@/components/TaskCard'
 import type { ModelStatus, TrainingTask, WarningLevel } from '@/lib/store'
 
 type IntegrationStatus = {
-  map: { configured: boolean; provider: string }
-  ai: { configured: boolean; provider: string; endpoint: string }
-  dji: { configured: boolean; provider: string; endpoint: string }
-  yolo: { configured: boolean; provider: string; endpoint: string; weights: string }
-  thermal: { configured: boolean; provider: string; source: string }
+  map: { configured: boolean; provider: string; reachable?: boolean }
+  ai: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
+  dji: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
+  yolo: { configured: boolean; provider: string; endpoint: string; weights: string; reachable?: boolean }
+  thermal: { configured: boolean; provider: string; source: string; reachable?: boolean }
 }
 
 type LiveFusion = {
   summary: string
+  modelStatus: { status: string; source: string; lastUpdated: string; version: string }
   analysis: { warningLevel: WarningLevel; intrusionRisk: number; predictionWindow: string; aiSummary: string }
 }
 
@@ -303,11 +304,11 @@ function AiTab(props: TabStateProps) {
       </Panel>
       <Panel title="接口状态" icon={Database}>
         <div className="space-y-3">
-          <StatusRow name="地图" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} />
-          <StatusRow name="AI" value={props.integrationStatus?.ai.endpoint || '未加载'} configured={props.integrationStatus?.ai.configured || false} />
-          <StatusRow name="DJI" value={props.integrationStatus?.dji.endpoint || '未加载'} configured={props.integrationStatus?.dji.configured || false} />
-          <StatusRow name="YOLO" value={props.integrationStatus?.yolo.endpoint || '未加载'} configured={props.integrationStatus?.yolo.configured || false} />
-          <StatusRow name="热成像" value={props.integrationStatus?.thermal.source || '未加载'} configured={props.integrationStatus?.thermal.configured || false} />
+          <StatusRow name="地图" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} reachable={props.integrationStatus?.map.reachable} />
+          <StatusRow name="AI" value={props.integrationStatus?.ai.endpoint || '未加载'} configured={props.integrationStatus?.ai.configured || false} reachable={props.integrationStatus?.ai.reachable} />
+          <StatusRow name="DJI" value={props.integrationStatus?.dji.endpoint || '未加载'} configured={props.integrationStatus?.dji.configured || false} reachable={props.integrationStatus?.dji.reachable} />
+          <StatusRow name="YOLO" value={props.integrationStatus?.yolo.endpoint || '未加载'} configured={props.integrationStatus?.yolo.configured || false} reachable={props.integrationStatus?.yolo.reachable} />
+          <StatusRow name="热成像" value={props.integrationStatus?.thermal.source || '未加载'} configured={props.integrationStatus?.thermal.configured || false} reachable={props.integrationStatus?.thermal.reachable} />
         </div>
       </Panel>
     </section>
@@ -362,11 +363,11 @@ function SettingsTab(props: TabStateProps) {
     <section className="grid grid-cols-[1fr_1fr] gap-4">
       <Panel title="系统设置" icon={Database}>
         <div className="space-y-3">
-          <StatusRow name="中国地图 API" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} />
-          <StatusRow name="AI 分析接口" value={`${props.integrationStatus?.ai.provider || '未加载'} / ${props.integrationStatus?.ai.endpoint || '未配置'}`} configured={props.integrationStatus?.ai.configured || false} />
-          <StatusRow name="DJI 司空 / FlightHub 2" value={`${props.integrationStatus?.dji.provider || '未加载'} / ${props.integrationStatus?.dji.endpoint || '未配置'}`} configured={props.integrationStatus?.dji.configured || false} />
-          <StatusRow name="YOLO 服务" value={`${props.integrationStatus?.yolo.provider || '未加载'} / ${props.integrationStatus?.yolo.endpoint || '未配置'}`} configured={props.integrationStatus?.yolo.configured || false} />
-          <StatusRow name="实时热成像" value={`${props.integrationStatus?.thermal.provider || '未加载'} / ${props.integrationStatus?.thermal.source || '未配置'}`} configured={props.integrationStatus?.thermal.configured || false} />
+          <StatusRow name="中国地图 API" value={props.integrationStatus?.map.provider || '未加载'} configured={props.integrationStatus?.map.configured || false} reachable={props.integrationStatus?.map.reachable} />
+          <StatusRow name="AI 分析接口" value={`${props.integrationStatus?.ai.provider || '未加载'} / ${props.integrationStatus?.ai.endpoint || '未配置'}`} configured={props.integrationStatus?.ai.configured || false} reachable={props.integrationStatus?.ai.reachable} />
+          <StatusRow name="DJI 司空 / FlightHub 2" value={`${props.integrationStatus?.dji.provider || '未加载'} / ${props.integrationStatus?.dji.endpoint || '未配置'}`} configured={props.integrationStatus?.dji.configured || false} reachable={props.integrationStatus?.dji.reachable} />
+          <StatusRow name="YOLO 服务" value={`${props.integrationStatus?.yolo.provider || '未加载'} / ${props.integrationStatus?.yolo.endpoint || '未配置'}`} configured={props.integrationStatus?.yolo.configured || false} reachable={props.integrationStatus?.yolo.reachable} />
+          <StatusRow name="实时热成像" value={`${props.integrationStatus?.thermal.provider || '未加载'} / ${props.integrationStatus?.thermal.source || '未配置'}`} configured={props.integrationStatus?.thermal.configured || false} reachable={props.integrationStatus?.thermal.reachable} />
         </div>
         <div className="mt-4">
           <IntegrationSettings />
@@ -468,8 +469,8 @@ function IntegrationRow({ name, configured, detail }: { name: string; configured
   )
 }
 
-function StatusRow({ name, value, configured }: { name: string; value: string; configured: boolean }) {
-  return <IntegrationRow name={name} detail={value} configured={configured} />
+function StatusRow({ name, value, configured, reachable }: { name: string; value: string; configured: boolean; reachable?: boolean }) {
+  return <IntegrationRow name={name} detail={reachable === undefined ? value : `${value} · ${reachable ? '已联通' : '待验证'}`} configured={configured && reachable !== false} />
 }
 
 function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
