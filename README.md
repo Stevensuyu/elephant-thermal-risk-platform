@@ -6,7 +6,7 @@
 
 - 中国地图接口：使用高德地图 JS API 2.0，配置 `NEXT_PUBLIC_AMAP_KEY` 后在首页显示中国地图与监测点。
 - 真实 AI 分析：创建任务时调用 `OPENAI_API_KEY` 对任务内容、视频信息和接入配置进行风险研判；未配置时只使用规则兜底并在页面标明。
-- 真实 YOLO：提供 `/api/yolo/predict` 推理接口。优先调用 `YOLO_SERVICE_URL`；本地或自托管 Node 环境可直接运行 `scripts/yolo_predict.py` 和 `ultralytics`。
+- YOLO 服务：可在设置中配置 `YOLO_SERVICE_URL`、权重名和服务提供方，供后台研判链路调用。
 - 模型 worker：`worker/training_worker.py` 支持 `TRAINING_MODE=real`，会调用 `train_elephant_yolo.py` 并读取 YOLO 输出的 `training_summary.json`；前端只在模型状态与确认汇总里展示结果。
 
 ## 可用接入
@@ -78,7 +78,6 @@ python worker/training_worker.py
 | PUT | `/api/tasks/:id` | worker 回写任务状态 |
 | POST | `/api/tasks/:id/aggregate` | 汇总研判结果 |
 | GET | `/api/model-status` | 获取模型状态 |
-| POST | `/api/yolo/predict` | YOLO 图片推理 |
 | GET | `/api/integrations/status` | 查看地图、AI、YOLO 配置状态 |
 
 ## 部署说明

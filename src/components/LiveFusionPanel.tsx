@@ -7,7 +7,7 @@ type LiveFusion = {
   thermal: { streamUrl: string; snapshotUrl: string; sourceName: string }
   dji: { providerName: string; cloudApiBaseUrl: string; openApiBaseUrl: string; websocketUrl: string }
   map: { apiKey: string }
-  yolo: { detections?: Array<{ label: string; confidence: number }> } | null
+  yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
   summary: string
 }
@@ -53,17 +53,12 @@ export default function LiveFusionPanel() {
 
       <div className="rounded-md bg-white p-3">
         <div className="text-sm font-medium text-slate-900">研判摘要</div>
-        <p className="mt-1 text-sm leading-6 text-slate-600">{data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2 或 YOLO 服务。'}</p>
-        {data?.yolo?.detections?.length ? (
-          <div className="mt-3 text-xs text-slate-500">
-            识别目标：{data.yolo.detections.map((d) => `${d.label}(${Math.round(d.confidence * 100)}%)`).join('、')}
-          </div>
-        ) : null}
+        <p className="mt-1 text-sm leading-6 text-slate-600">{data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2 和 AI 分析接口。'}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
         <div className="rounded-md bg-white p-3">DJI：{data?.dji.cloudApiBaseUrl || data?.dji.openApiBaseUrl || '未配置'}</div>
-        <div className="rounded-md bg-white p-3">热成像源：{data?.thermal.sourceName || '未配置'}</div>
+        <div className="rounded-md bg-white p-3">YOLO：{data?.yolo?.configured ? data.yolo.providerName : '未配置'}</div>
       </div>
     </div>
   )
