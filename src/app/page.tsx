@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Cpu,
   Database,
-  MapPinned,
   Plus,
   Radar,
   RefreshCw,
@@ -16,7 +15,8 @@ import {
   UploadCloud,
   type LucideIcon,
 } from 'lucide-react'
-import ChinaMap, { type ChinaMapMarker } from '@/components/ChinaMap'
+import type { ChinaMapMarker } from '@/components/ChinaMap'
+import DynamicBrowseWall from '@/components/DynamicBrowseWall'
 import CreateTaskModal, { type CreateTaskPayload } from '@/components/CreateTaskModal'
 import IntegrationSettings from '@/components/IntegrationSettings'
 import LiveFusionPanel from '@/components/LiveFusionPanel'
@@ -41,6 +41,11 @@ type LiveFusion = {
   latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   modelStatus: { status: string; source: string; lastUpdated: string; version: string }
   analysis: { warningLevel: WarningLevel; intrusionRisk: number; predictionWindow: string; aiSummary: string }
+  thermal: { streamUrl: string; snapshotUrl: string; sourceName: string }
+  dji: { providerName?: string; cloudApiBaseUrl: string; openApiBaseUrl: string; websocketUrl: string }
+  map: { apiKey: string }
+  yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
+  threeD: { configured: boolean; providerName: string; serviceUrl: string; snapshotUrl: string } | null
 }
 
 type TabStateProps = {
@@ -179,7 +184,7 @@ export default function Home() {
                 <p className="text-sm font-medium text-emerald-300">天眼护象 · 监测-预警-处警一体化</p>
                 <h1 className="mt-2 text-3xl font-bold tracking-tight">象群入侵风险智能研判与警情联动大屏</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-                  接入地图、DJI 司空 / FlightHub 2、实时热成像和 AI 分析接口，形成可配置、可追溯的实时研判链路。
+                  接入中国地图、DJI 司空 / FlightHub 2、实时热成像和 AI 分析接口，形成可配置、可追溯的实时研判链路。
                 </p>
                 <div className="mt-4 flex gap-2">
                   <button onClick={refresh} className="inline-flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm hover:bg-white/20">
@@ -242,16 +247,9 @@ export default function Home() {
 function DashboardTab(props: TabStateProps) {
   return (
     <>
+      <DynamicBrowseWall liveFusion={props.liveFusion} commandTask={props.commandTask} markers={chinaMapMarkers} />
+
       <section className="mb-5 grid grid-cols-[1.15fr_.85fr] gap-4">
-        <Panel title="实时三维立体分析与分级预警" icon={BrainCircuit}>
-          <LiveFusionPanel />
-          <div className="mt-4">
-            <ChinaMap markers={chinaMapMarkers} />
-          </div>
-          <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-            {props.liveFusion?.summary || props.commandTask?.aiSummary || '等待实时热成像源接入后，系统会自动拉取地图、DJI 与 AI 分析信息。'}
-          </div>
-        </Panel>
         <Panel title="当前模型状态与确认汇总" icon={CheckCircle2}>
           <div className="grid grid-cols-2 gap-3">
             <Metric label="模型版本" value={props.modelStatus.version} />
@@ -263,6 +261,12 @@ function DashboardTab(props: TabStateProps) {
           </div>
           <div className="mt-4 rounded-md bg-slate-50 p-4 text-xs leading-5 text-slate-600">
             当前模型状态会跟随实时研判结果更新，确认汇总后才写入模型状态。
+          </div>
+        </Panel>
+        <Panel title="实时三维立体分析与分级预警" icon={BrainCircuit}>
+          <LiveFusionPanel />
+          <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+            {props.liveFusion?.summary || props.commandTask?.aiSummary || '等待接入实时热成像源、DJI 司空 / FlightHub 2、三维分析和 AI 分析接口。'}
           </div>
         </Panel>
       </section>
@@ -420,7 +424,7 @@ function DispatchGrid({ task, level, levelBg }: { task?: TrainingTask; level: Wa
   const items =
     task?.dispatchPlan ||
     ({
-      RED: ['立即疏散群众', '实施交通管制', '专业救助力量调派', '指挥中心全程留痕'],
+      RED: ['立即疏散群众', '实施交通管制', '调派专业救援力量', '指挥中心全程留痕'],
       ORANGE: ['巡护力量前置', '村寨联络员提醒', '无人机复飞跟踪', '准备交通劝导'],
       YELLOW: ['持续观察 1-2 小时', '核对历史轨迹', '村民端注意提醒', '保留升级规则'],
       BLUE: ['常态监测', '记录位置方向', '订阅项圈轨迹', '无需立即处警'],
@@ -493,7 +497,7 @@ function IntegrationRow({ name, configured, detail }: { name: string; configured
 }
 
 function StatusRow({ name, value, configured, reachable }: { name: string; value: string; configured: boolean; reachable?: boolean }) {
-  return <IntegrationRow name={name} detail={reachable === undefined ? value : `${value} · ${reachable ? '已联通' : '待验证'}`} configured={configured && reachable !== false} />
+  return <IntegrationRow name={name} detail={reachable === undefined ? value : `${value} · ${reachable ? '已连通' : '待验证'}`} configured={configured && reachable !== false} />
 }
 
 function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
