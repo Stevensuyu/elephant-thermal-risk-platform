@@ -34,6 +34,8 @@ type IntegrationStatus = {
 
 type LiveFusion = {
   summary: string
+  acquisitionSummary: string
+  latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   modelStatus: { status: string; source: string; lastUpdated: string; version: string }
   analysis: { warningLevel: WarningLevel; intrusionRisk: number; predictionWindow: string; aiSummary: string }
 }
@@ -194,6 +196,15 @@ export default function Home() {
                   <ShieldAlert size={64} className={level.text} />
                 </div>
               </div>
+            </div>
+            <div className="border-t border-white/10 px-6 py-3 text-sm text-slate-300">
+              {liveFusion ? (
+                <span>
+                  采集：{liveFusion.acquisitionSummary || '0/0'} · 当前任务：{liveFusion.latestTask?.name || '暂无'} · 风险窗口：{liveFusion.analysis.predictionWindow || '待研判'}
+                </span>
+              ) : (
+                <span>采集：加载中 · 当前任务：加载中 · 风险窗口：加载中</span>
+              )}
             </div>
           </header>
 
