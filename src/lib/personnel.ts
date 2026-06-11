@@ -17,6 +17,9 @@ export interface PersonnelMember {
 const root = process.cwd()
 const storageDir = path.join(root, 'storage')
 const personnelPath = path.join(storageDir, 'personnel.json')
+const runtimeState = globalThis as typeof globalThis & {
+  __personnelMembers?: PersonnelMember[]
+}
 
 const defaultPersonnel: PersonnelMember[] = [
   {
@@ -40,24 +43,42 @@ const defaultPersonnel: PersonnelMember[] = [
 ]
 
 async function ensureStore() {
-  await mkdir(storageDir, { recursive: true })
   try {
+    await mkdir(storageDir, { recursive: true })
     await readFile(personnelPath, 'utf8')
   } catch {
-    await writePersonnel(defaultPersonnel)
+    runtimeState.__personnelMembers ||= defaultPersonnel
+    try {
+      await writeFile(personnelPath, JSON.stringify(defaultPersonnel, null, 2), 'utf8')
+    } catch {
+      // Vercel serverless uses an ephemeral filesystem. Keep runtime memory as fallback.
+    }
   }
 }
 
 export async function readPersonnel() {
   await ensureStore()
-  const raw = await readFile(personnelPath, 'utf8')
-  const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as PersonnelMember[]
-  return Array.isArray(parsed) ? parsed : defaultPersonnel
+  try {
+    const raw = await readFile(personnelPath, 'utf8')
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as PersonnelMember[]
+    const next = Array.isArray(parsed) ? parsed : defaultPersonnel
+    runtimeState.__personnelMembers = next
+    return next
+  } catch {
+    const next = runtimeState.__personnelMembers || defaultPersonnel
+    runtimeState.__personnelMembers = next
+    return next
+  }
 }
 
 export async function writePersonnel(members: PersonnelMember[]) {
-  await mkdir(storageDir, { recursive: true })
-  await writeFile(personnelPath, JSON.stringify(members, null, 2), 'utf8')
+  runtimeState.__personnelMembers = members
+  try {
+    await mkdir(storageDir, { recursive: true })
+    await writeFile(personnelPath, JSON.stringify(members, null, 2), 'utf8')
+  } catch {
+    // Ignore write failures on read-only runtimes.
+  }
 }
 
 export async function createPersonnelMember(input: Omit<PersonnelMember, 'id'>) {

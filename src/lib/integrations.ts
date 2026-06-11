@@ -4,6 +4,9 @@ import path from 'path'
 const root = process.cwd()
 const storageDir = path.join(root, 'storage')
 const integrationsPath = path.join(storageDir, 'integrations.json')
+const runtimeState = globalThis as typeof globalThis & {
+  __integrationConfig?: IntegrationConfig
+}
 
 export type IntegrationKind = 'map' | 'ai' | 'dji' | 'yolo' | 'thermal' | 'threeD'
 
@@ -127,11 +130,27 @@ async function probeUrl(url: string, method: 'HEAD' | 'GET' = 'HEAD') {
 }
 
 async function ensureStore() {
-  await mkdir(storageDir, { recursive: true })
   try {
+    await mkdir(storageDir, { recursive: true })
     await readFile(integrationsPath, 'utf8')
   } catch {
-    await writeIntegrations(defaultConfig)
+    runtimeState.__integrationConfig ||= defaultConfig
+    try {
+      await writeFile(integrationsPath, JSON.stringify(defaultConfig, null, 2), 'utf8')
+    } catch {
+      // Vercel serverless uses an ephemeral filesystem. Keep runtime memory as fallback.
+    }
+  }
+}
+
+function normalizeConfig(parsed?: Partial<IntegrationConfig> | null) {
+  return {
+    map: { ...defaultConfig.map, ...(parsed?.map || {}) },
+    ai: { ...defaultConfig.ai, ...(parsed?.ai || {}) },
+    dji: { ...defaultConfig.dji, ...(parsed?.dji || {}) },
+    yolo: { ...defaultConfig.yolo, ...(parsed?.yolo || {}) },
+    thermal: { ...defaultConfig.thermal, ...(parsed?.thermal || {}) },
+    threeD: { ...defaultConfig.threeD, ...(parsed?.threeD || {}) },
   }
 }
 
@@ -140,25 +159,24 @@ export async function readIntegrations(override?: Partial<IntegrationConfig> | n
   try {
     const raw = await readFile(integrationsPath, 'utf8')
     const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as Partial<IntegrationConfig>
-    return mergeIntegrationConfig(
-      {
-        map: { ...defaultConfig.map, ...(parsed.map || {}) },
-        ai: { ...defaultConfig.ai, ...(parsed.ai || {}) },
-        dji: { ...defaultConfig.dji, ...(parsed.dji || {}) },
-        yolo: { ...defaultConfig.yolo, ...(parsed.yolo || {}) },
-        thermal: { ...defaultConfig.thermal, ...(parsed.thermal || {}) },
-        threeD: { ...defaultConfig.threeD, ...(parsed.threeD || {}) },
-      },
-      override,
-    )
+    const next = mergeIntegrationConfig(normalizeConfig(parsed), override)
+    runtimeState.__integrationConfig = next
+    return next
   } catch {
-    return mergeIntegrationConfig(defaultConfig, override)
+    const next = mergeIntegrationConfig(normalizeConfig(runtimeState.__integrationConfig), override)
+    runtimeState.__integrationConfig = next
+    return next
   }
 }
 
 export async function writeIntegrations(config: IntegrationConfig) {
-  await mkdir(storageDir, { recursive: true })
-  await writeFile(integrationsPath, JSON.stringify(config, null, 2), 'utf8')
+  runtimeState.__integrationConfig = config
+  try {
+    await mkdir(storageDir, { recursive: true })
+    await writeFile(integrationsPath, JSON.stringify(config, null, 2), 'utf8')
+  } catch {
+    // Ignore write failures on read-only runtimes.
+  }
 }
 
 export async function updateIntegrations(patch: Partial<IntegrationConfig>) {
@@ -183,7 +201,7 @@ export async function getIntegrationStatus(override?: Partial<IntegrationConfig>
   return {
     map: {
       configured: isConfigured(config.map.apiKey),
-      provider: config.map.provider === 'tencent' ? 'Tencent / 腾讯地图 GL JS' : 'AMap / 高德地图 JS API',
+      provider: config.map.provider === 'tencent' ? 'Tencent Map GL JS' : 'AMap JS API',
       reachable: mapReachable,
     },
     ai: {

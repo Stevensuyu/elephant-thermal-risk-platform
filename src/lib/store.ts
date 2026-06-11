@@ -63,6 +63,9 @@ const root = process.cwd()
 export const storageDir = path.join(root, 'storage')
 export const uploadDir = path.join(storageDir, 'uploads')
 const dbPath = path.join(storageDir, 'training-db.json')
+const runtimeState = globalThis as typeof globalThis & {
+  __trainingDb?: DbShape
+}
 
 const defaultModelStatus: ModelStatus = {
   version: 'YOLOv8n-elephant-thermal',
@@ -77,12 +80,12 @@ const defaultModelStatus: ModelStatus = {
   lastUpdated: '基线状态',
 }
 
-export function defaultStages(active: number = -1): TrainingStage[] {
+export function defaultStages(active = -1): TrainingStage[] {
   const names: Array<[StageKey, string]> = [
     ['upload', '视频接收'],
     ['frames', '抽帧分析'],
     ['label', '自动预标注'],
-    ['train', '结果同步'],
+    ['train', '模型训练'],
     ['sync', '结果同步'],
   ]
   return names.map(([key, name], index) => ({
@@ -101,23 +104,30 @@ export function levelFromRisk(risk: number): WarningLevel {
 }
 
 export function levelText(level: WarningLevel) {
-  return { RED: '红色预警', ORANGE: '橙色预警', YELLOW: '黄色预警', BLUE: '蓝色预警' }[level]
+  return {
+    RED: '红色预警',
+    ORANGE: '橙色预警',
+    YELLOW: '黄色预警',
+    BLUE: '蓝色预警',
+  }[level]
 }
 
 async function ensureStore() {
-  await mkdir(uploadDir, { recursive: true })
   try {
+    await mkdir(uploadDir, { recursive: true })
     await readFile(dbPath, 'utf8')
   } catch {
-    await writeDb({ tasks: [], modelStatus: defaultModelStatus })
+    runtimeState.__trainingDb ||= { tasks: [], modelStatus: defaultModelStatus }
+    try {
+      await writeFile(dbPath, JSON.stringify(runtimeState.__trainingDb, null, 2), 'utf8')
+    } catch {
+      // Vercel serverless uses an ephemeral filesystem. Keep runtime memory as fallback.
+    }
   }
 }
 
-export async function readDb(): Promise<DbShape> {
-  await ensureStore()
-  const raw = await readFile(dbPath, 'utf8')
-  const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as Partial<DbShape>
-  const tasks = (parsed.tasks || []).map((task) => ({
+function normalizeDb(parsed?: Partial<DbShape> | null): DbShape {
+  const tasks = (parsed?.tasks || []).map((task) => ({
     ...task,
     warningLevel: task.warningLevel || 'BLUE',
     intrusionRisk: Number(task.intrusionRisk || 18),
@@ -125,17 +135,38 @@ export async function readDb(): Promise<DbShape> {
     aiSummary: task.aiSummary || '等待 AI 研判结果。',
     dispatchPlan: task.dispatchPlan?.length ? task.dispatchPlan : ['持续监测', '核验位置', '记录轨迹', '等待升级规则'],
     analysisMode: task.analysisMode || 'heuristic',
-    analysisSource: task.analysisSource || 'legacy-db',
+    analysisSource: task.analysisSource || 'runtime-store',
   }))
   return {
     tasks,
-    modelStatus: parsed.modelStatus || defaultModelStatus,
+    modelStatus: parsed?.modelStatus || defaultModelStatus,
+  }
+}
+
+export async function readDb(): Promise<DbShape> {
+  await ensureStore()
+  try {
+    const raw = await readFile(dbPath, 'utf8')
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as Partial<DbShape>
+    const next = normalizeDb(parsed)
+    runtimeState.__trainingDb = next
+    return next
+  } catch {
+    const next = normalizeDb(runtimeState.__trainingDb || { tasks: [], modelStatus: defaultModelStatus })
+    runtimeState.__trainingDb = next
+    return next
   }
 }
 
 export async function writeDb(db: DbShape) {
-  await mkdir(storageDir, { recursive: true })
-  await writeFile(dbPath, JSON.stringify(db, null, 2), 'utf8')
+  const next = normalizeDb(db)
+  runtimeState.__trainingDb = next
+  try {
+    await mkdir(storageDir, { recursive: true })
+    await writeFile(dbPath, JSON.stringify(next, null, 2), 'utf8')
+  } catch {
+    // Ignore write failures on read-only runtimes.
+  }
 }
 
 export async function listTasks() {

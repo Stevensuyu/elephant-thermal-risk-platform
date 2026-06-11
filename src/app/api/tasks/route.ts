@@ -25,7 +25,11 @@ export async function POST(request: Request) {
         const fileName = `${Date.now()}-${safeName}`
         videoPath = path.join(uploadDir, fileName)
         const bytes = Buffer.from(await videoFile.arrayBuffer())
-        await writeFile(videoPath, bytes)
+        try {
+          await writeFile(videoPath, bytes)
+        } catch {
+          videoPath = undefined
+        }
       }
 
       const task = await createTask({
