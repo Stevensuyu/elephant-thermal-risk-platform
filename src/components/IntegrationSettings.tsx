@@ -60,6 +60,14 @@ export default function IntegrationSettings() {
     <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
   )
 
+  const referenceLinks = [
+    { label: 'Ultralytics Platform', href: 'https://docs.ultralytics.com/platform/deploy/inference' },
+    { label: 'Roboflow Hosted API', href: 'https://docs.roboflow.com/deploy/serverless-hosted-api-v2/use-with-the-rest-api' },
+    { label: 'DJI Cloud API', href: 'https://developer.dji.com/cloud-api' },
+    { label: 'FlightHub Mapping API', href: 'https://developer.dji.com/flighthub-api' },
+    { label: '腾讯位置服务', href: 'https://lbs.qq.com/webservice_v1/index.html' },
+  ]
+
   return (
     <div className="space-y-4">
       <section className="grid grid-cols-2 gap-3">
@@ -124,26 +132,14 @@ export default function IntegrationSettings() {
       </div>
 
       <div className="rounded-md border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
-        接入参考：{' '}
-        <a className="text-blue-600 hover:underline" href="https://docs.ultralytics.com/platform/deploy/inference" target="_blank" rel="noreferrer">
-          Ultralytics Platform
-        </a>
-        {' · '}
-        <a className="text-blue-600 hover:underline" href="https://docs.roboflow.com/deploy/serverless-hosted-api-v2/use-with-the-rest-api" target="_blank" rel="noreferrer">
-          Roboflow Hosted API
-        </a>
-        {' · '}
-        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/cloud-api" target="_blank" rel="noreferrer">
-          DJI Cloud API
-        </a>
-        {' · '}
-        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/flighthub-api" target="_blank" rel="noreferrer">
-          FlightHub Mapping API
-        </a>
-        {' · '}
-        <a className="text-blue-600 hover:underline" href="https://lbs.qq.com/webservice_v1/index.html" target="_blank" rel="noreferrer">
-          腾讯位置服务
-        </a>
+        <div className="mb-2 font-semibold text-slate-700">接入参考</div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+          {referenceLinks.map((item) => (
+            <a key={item.label} className="text-blue-600 hover:underline" href={item.href} target="_blank" rel="noreferrer">
+              {item.label}
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   )
