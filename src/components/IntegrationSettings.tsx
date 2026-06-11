@@ -90,7 +90,7 @@ export default function IntegrationSettings() {
         <Field title="DJI 平台名" note="司空 / FlightHub 2">
           {input(config.dji.providerName, (providerName) => setConfig({ ...config, dji: { ...config.dji, providerName } }))}
         </Field>
-        <Field title="DJI Cloud API" note="云端接口地址">
+        <Field title="DJI Cloud API" note="FlightHub 2 / Cloud API">
           {input(config.dji.cloudApiBaseUrl, (cloudApiBaseUrl) => setConfig({ ...config, dji: { ...config.dji, cloudApiBaseUrl } }))}
         </Field>
         <Field title="DJI OpenAPI" note="本地或私有云接口">
@@ -105,7 +105,7 @@ export default function IntegrationSettings() {
         <Field title="热成像流地址" note="直播流">
           {input(config.thermal.streamUrl, (streamUrl) => setConfig({ ...config, thermal: { ...config.thermal, streamUrl } }))}
         </Field>
-        <Field title="YOLO 服务 URL" note="可用 Ultralytics / Roboflow / 自建服务">
+        <Field title="YOLO 服务 URL" note="Ultralytics / Roboflow / 自建 GPU">
           {input(config.yolo.serviceUrl, (serviceUrl) => setConfig({ ...config, yolo: { ...config.yolo, serviceUrl } }))}
         </Field>
         <Field title="YOLO 权重" note="仅作服务端引用">
@@ -135,4 +135,3 @@ function Field({ title, note, children }: { title: string; note: string; childre
     </label>
   )
 }
-
