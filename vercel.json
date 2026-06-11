@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "buildCommand": "npm run build",
   "cleanUrls": true,
   "trailingSlash": false,
