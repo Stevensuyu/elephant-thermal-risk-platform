@@ -35,14 +35,28 @@ export default function ChinaMap({ markers }: ChinaMapProps) {
   const [securityCode, setSecurityCode] = useState('')
 
   useEffect(() => {
-    const draft = readIntegrationDraft()
-    const mapConfig = draft?.map
-    const nextProvider = mapConfig?.provider || 'amap'
-    const nextKey = mapConfig?.apiKey || process.env.NEXT_PUBLIC_AMAP_KEY || ''
-    const nextSecurityCode = mapConfig?.securityJsCode || process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || ''
-    setProvider(nextProvider)
-    setKey(nextKey)
-    setSecurityCode(nextSecurityCode)
+    void (async () => {
+      const draft = readIntegrationDraft()
+      try {
+        const response = await fetch('/api/integrations/config', { cache: 'no-store' })
+        const serverConfig = response.ok ? await response.json() : null
+        const mapConfig = draft?.map || serverConfig?.map
+        const nextProvider = mapConfig?.provider || 'amap'
+        const nextKey = mapConfig?.apiKey || process.env.NEXT_PUBLIC_AMAP_KEY || ''
+        const nextSecurityCode = mapConfig?.securityJsCode || process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || ''
+        setProvider(nextProvider)
+        setKey(nextKey)
+        setSecurityCode(nextSecurityCode)
+      } catch {
+        const mapConfig = draft?.map
+        const nextProvider = mapConfig?.provider || 'amap'
+        const nextKey = mapConfig?.apiKey || process.env.NEXT_PUBLIC_AMAP_KEY || ''
+        const nextSecurityCode = mapConfig?.securityJsCode || process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || ''
+        setProvider(nextProvider)
+        setKey(nextKey)
+        setSecurityCode(nextSecurityCode)
+      }
+    })()
   }, [])
 
   useEffect(() => {

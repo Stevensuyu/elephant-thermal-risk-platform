@@ -70,8 +70,8 @@ export function mergeIntegrationConfig(current: IntegrationConfig, patch?: Parti
 
 const defaultConfig: IntegrationConfig = {
   map: {
-    provider: 'amap',
-    apiKey: process.env.NEXT_PUBLIC_AMAP_KEY || '',
+    provider: 'tencent',
+    apiKey: process.env.NEXT_PUBLIC_AMAP_KEY || 'DCQBZ-MSEWI-M7PGD-UQX3B-OHMRS-RTFUV',
     securityJsCode: process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE || '',
   },
   ai: {

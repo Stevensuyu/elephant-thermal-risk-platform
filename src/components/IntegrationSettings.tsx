@@ -22,7 +22,7 @@ type IntegrationConfig = {
 type SectionKey = 'map' | 'ai' | 'dji' | 'thermal' | 'yolo' | 'threeD'
 
 const emptyConfig: IntegrationConfig = {
-  map: { provider: 'amap', apiKey: '', securityJsCode: '' },
+  map: { provider: 'tencent', apiKey: 'DCQBZ-MSEWI-M7PGD-UQX3B-OHMRS-RTFUV', securityJsCode: '' },
   ai: { providerName: 'OpenAI', baseUrl: 'https://api.openai.com/v1', apiKey: '', model: 'gpt-4.1-mini' },
   dji: { providerName: 'DJI FlightHub 2', cloudApiBaseUrl: '', openApiBaseUrl: '', websocketUrl: '', appKey: '', appId: '', accessToken: '', workspaceId: '' },
   yolo: { providerName: 'Ultralytics / Roboflow', serviceUrl: '', apiKey: '', weights: 'yolov8n.pt' },
