@@ -9,7 +9,7 @@ export type IntegrationKind = 'map' | 'ai' | 'dji' | 'yolo' | 'thermal' | 'three
 
 export interface IntegrationConfig {
   map: {
-    provider: 'amap'
+    provider: 'amap' | 'tencent'
     apiKey: string
     securityJsCode: string
   }
@@ -170,7 +170,10 @@ export async function updateIntegrations(patch: Partial<IntegrationConfig>) {
 
 export async function getIntegrationStatus(override?: Partial<IntegrationConfig> | null): Promise<IntegrationStatus> {
   const config = await readIntegrations(override)
-  const mapReachable = await probeUrl('https://webapi.amap.com/maps?v=2.0', 'HEAD')
+  const mapReachable = await probeUrl(
+    config.map.provider === 'tencent' ? 'https://map.qq.com/api/gljs?v=1.exp' : 'https://webapi.amap.com/maps?v=2.0',
+    'HEAD',
+  )
   const aiReachable = await probeUrl(config.ai.baseUrl, 'HEAD')
   const djiReachable = await probeUrl(config.dji.cloudApiBaseUrl || config.dji.openApiBaseUrl, 'HEAD')
   const yoloReachable = await probeUrl(config.yolo.serviceUrl, 'HEAD')
@@ -180,7 +183,7 @@ export async function getIntegrationStatus(override?: Partial<IntegrationConfig>
   return {
     map: {
       configured: isConfigured(config.map.apiKey),
-      provider: 'AMap / 高德地图 JS API',
+      provider: config.map.provider === 'tencent' ? 'Tencent / 腾讯地图 GL JS' : 'AMap / 高德地图 JS API',
       reachable: mapReachable,
     },
     ai: {

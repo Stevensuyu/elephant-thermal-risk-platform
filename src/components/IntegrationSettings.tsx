@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { mergeIntegrationDraft, readIntegrationDraft, writeIntegrationDraft } from '@/lib/integration-client'
 
 type IntegrationConfig = {
-  map: { provider: 'amap'; apiKey: string; securityJsCode: string }
+  map: { provider: 'amap' | 'tencent'; apiKey: string; securityJsCode: string }
   ai: { providerName: string; baseUrl: string; apiKey: string; model: string }
   dji: {
     providerName: string
@@ -39,12 +39,18 @@ const sectionLabels: Record<SectionKey, string> = {
   threeD: '三维分析',
 }
 
+function looksLikeTencentMapKey(key: string) {
+  return /^[A-Z0-9]{5,6}(?:-[A-Z0-9]{5}){4,5}$/i.test(key.trim())
+}
+
 export default function IntegrationSettings() {
   const [config, setConfig] = useState<IntegrationConfig>(emptyConfig)
   const [savingKey, setSavingKey] = useState<SectionKey | null>(null)
   const [messages, setMessages] = useState<Partial<Record<SectionKey, string>>>({})
+  const [currentHost, setCurrentHost] = useState('')
 
   useEffect(() => {
+    setCurrentHost(window.location.host)
     void (async () => {
       const response = await fetch('/api/integrations/config', { cache: 'no-store' })
       if (response.ok) {
@@ -64,7 +70,13 @@ export default function IntegrationSettings() {
     setSavingKey(key)
     setMessages((current) => ({ ...current, [key]: '' }))
     try {
-      const patch = { [key]: config[key] } as Pick<IntegrationConfig, K>
+      const nextSection =
+        key === 'map' && looksLikeTencentMapKey(config.map.apiKey)
+          ? { ...config.map, provider: 'tencent' as const }
+          : config[key]
+      const nextConfig = key === 'map' ? { ...config, map: nextSection as IntegrationConfig['map'] } : config
+      if (key === 'map') setConfig(nextConfig)
+      const patch = { [key]: nextSection } as Pick<IntegrationConfig, K>
       const response = await fetch('/api/integrations/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -96,6 +108,11 @@ export default function IntegrationSettings() {
       ? '当前服务名是 OpenAI，但这个 Key 不像 OpenAI API Key，真实调用大概率会失败。'
       : ''
 
+  const mapHint =
+    config.map.provider === 'amap'
+      ? `高德 Web JS Key 还需要在控制台把当前域名 ${currentHost || '你的站点域名'} 加进白名单；如果开启安全校验，还要填写安全密钥。`
+      : `腾讯地图 Key 也需要把当前域名 ${currentHost || '你的站点域名'} 加进白名单。`
+
   const referenceLinks = [
     { label: 'Ultralytics Platform', href: 'https://docs.ultralytics.com/platform/deploy/inference' },
     { label: 'Roboflow Hosted API', href: 'https://docs.roboflow.com/deploy/serverless-hosted-api-v2/use-with-the-rest-api' },
@@ -108,11 +125,21 @@ export default function IntegrationSettings() {
     <div className="space-y-4">
       <SectionCard
         title="地图服务"
-        message={messages.map}
+        message={messages.map || (looksLikeTencentMapKey(config.map.apiKey) ? '当前 Key 更像腾讯地图 Key，确认时会自动按腾讯地图导入。' : mapHint)}
         saving={savingKey === 'map'}
         onConfirm={() => void saveSection('map')}
       >
         <div className="grid grid-cols-2 gap-3">
+          <Field title="地图提供方" note="支持高德或腾讯">
+            <select
+              value={config.map.provider}
+              onChange={(event) => updateSection('map', { ...config.map, provider: event.target.value as 'amap' | 'tencent' })}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            >
+              <option value="amap">高德地图</option>
+              <option value="tencent">腾讯地图</option>
+            </select>
+          </Field>
           <Field title="地图 API Key" note="高德地图 JS API">
             {input(config.map.apiKey, (apiKey) => updateSection('map', { ...config.map, apiKey }))}
           </Field>
