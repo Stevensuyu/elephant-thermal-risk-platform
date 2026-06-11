@@ -122,6 +122,25 @@ export default function IntegrationSettings() {
           {saving ? '保存中...' : '保存配置'}
         </button>
       </div>
+
+      <div className="rounded-md border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
+        接入参考：{' '}
+        <a className="text-blue-600 hover:underline" href="https://docs.ultralytics.com/platform/deploy/inference" target="_blank" rel="noreferrer">
+          Ultralytics Platform
+        </a>
+        {' · '}
+        <a className="text-blue-600 hover:underline" href="https://docs.roboflow.com/deploy/serverless-hosted-api-v2/use-with-the-rest-api" target="_blank" rel="noreferrer">
+          Roboflow Hosted API
+        </a>
+        {' · '}
+        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/resources/private/landing" target="_blank" rel="noreferrer">
+          DJI FlightHub 2 OpenAPI
+        </a>
+        {' · '}
+        <a className="text-blue-600 hover:underline" href="https://lbs.qq.com/webservice_v1/index.html" target="_blank" rel="noreferrer">
+          腾讯位置服务
+        </a>
+      </div>
     </div>
   )
 }
