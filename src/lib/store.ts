@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
+import { analyzeTaskInput, type AnalysisResult } from '@/lib/analysis'
 
 export type TaskStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
 export type StageKey = 'upload' | 'frames' | 'label' | 'train' | 'sync'
@@ -12,7 +13,7 @@ export interface TrainingStage {
   status: '等待' | '处理中' | '完成' | '失败'
 }
 
-export interface TrainingTask {
+export interface TrainingTask extends AnalysisResult {
   id: string
   name: string
   description?: string
@@ -27,11 +28,6 @@ export interface TrainingTask {
   progress: number
   stages: TrainingStage[]
   metrics?: Record<string, number | string>
-  warningLevel: WarningLevel
-  intrusionRisk: number
-  predictionWindow: string
-  aiSummary: string
-  dispatchPlan: string[]
   resultDir?: string
   errorMessage?: string
   needsModelConfirm?: boolean
@@ -76,7 +72,7 @@ const defaultModelStatus: ModelStatus = {
   elephantMap50: 0.989,
   precision: 0.976,
   recall: 0.973,
-  source: '多源象群热成像基线模型',
+  source: '多源热成像基线模型',
   lastUpdated: '基线模型',
 }
 
@@ -107,31 +103,6 @@ export function levelText(level: WarningLevel) {
   return { RED: '红色预警', ORANGE: '橙色预警', YELLOW: '黄色预警', BLUE: '蓝色预警' }[level]
 }
 
-function buildAiAnalysis(input: { name: string; videoFileName?: string; videoUrl?: string }) {
-  const seed = Array.from(`${input.name}${input.videoFileName || input.videoUrl || ''}`).reduce((sum, char) => sum + char.charCodeAt(0), 0)
-  const herdSize = 5 + (seed % 11)
-  const distanceVillage = 180 + (seed % 940)
-  const distanceFarm = 120 + ((seed * 7) % 1200)
-  const distanceBorder = 300 + ((seed * 11) % 1600)
-  const speed = 0.7 + ((seed % 18) / 10)
-  const towardSensitive = seed % 3 !== 0
-  const timeRisk = new Date().getHours() >= 18 || new Date().getHours() <= 6 ? 18 : 8
-  const spatialRisk = Math.max(0, 45 - distanceVillage / 35) + Math.max(0, 35 - distanceFarm / 40) + Math.max(0, 20 - distanceBorder / 90)
-  const movementRisk = speed * 8 + (towardSensitive ? 16 : 3)
-  const environmentRisk = 8 + (seed % 16)
-  const intrusionRisk = Math.max(8, Math.min(99, Math.round(spatialRisk + movementRisk + environmentRisk + timeRisk + herdSize * 1.2)))
-  const warningLevel = levelFromRisk(intrusionRisk)
-  const predictionWindow = warningLevel === 'RED' ? '30 分钟内' : warningLevel === 'ORANGE' ? '30-60 分钟' : warningLevel === 'YELLOW' ? '1-2 小时' : '2 小时以上'
-  const dispatchPlan = {
-    RED: ['立即生成红色警情卡片并推送指挥端', '启动群众疏散、道路临时管制与边境线联防', '调派专业救助力量、巡护警力和无人机持续跟踪', '全流程留痕，处置后自动生成复盘材料'],
-    ORANGE: ['推送橙色预警至派出所和村寨联络员', '巡护组前置到农田、村庄和道路交界处', '无人机提高复飞频次并更新移动方向', '准备交通劝导和群众提示'],
-    YELLOW: ['推送黄色关注提醒', '持续观察 1-2 小时并核对项圈历史轨迹', '核验水源距离、土地覆盖和地形通道', '向村民端发送注意避让信息'],
-    BLUE: ['进入蓝色常态监测', '记录象群位置、方向和速度', '保持无人机与项圈轨迹数据订阅', '无需立即处警，保留自动升级规则'],
-  }[warningLevel]
-  const aiSummary = `融合无人机检测、气象、地理信息、历史项圈轨迹、土地覆盖、地形、水源、道路和村庄分布后，系统识别象群规模约 ${herdSize} 头，最近村庄 ${Math.round(distanceVillage)} 米，最近农田 ${Math.round(distanceFarm)} 米，最近边境线 ${Math.round(distanceBorder)} 米，移动速率 ${speed.toFixed(1)} m/s，${towardSensitive ? '方向指向敏感区域' : '方向暂未指向敏感区域'}。入侵风险指数 ${intrusionRisk}，预测窗口 ${predictionWindow}。`
-  return { warningLevel, intrusionRisk, predictionWindow, aiSummary, dispatchPlan }
-}
-
 async function ensureStore() {
   await mkdir(uploadDir, { recursive: true })
   try {
@@ -145,10 +116,16 @@ export async function readDb(): Promise<DbShape> {
   await ensureStore()
   const raw = await readFile(dbPath, 'utf8')
   const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as Partial<DbShape>
-  const tasks = (parsed.tasks || []).map((task) => {
-    if (task.warningLevel && task.aiSummary && task.dispatchPlan) return task
-    return { ...task, ...buildAiAnalysis({ name: task.name, videoFileName: task.videoFileName, videoUrl: task.videoUrl }) }
-  })
+  const tasks = (parsed.tasks || []).map((task) => ({
+    ...task,
+    warningLevel: task.warningLevel || 'BLUE',
+    intrusionRisk: Number(task.intrusionRisk || 18),
+    predictionWindow: task.predictionWindow || '2 小时以上',
+    aiSummary: task.aiSummary || '等待 AI 分析结果。',
+    dispatchPlan: task.dispatchPlan?.length ? task.dispatchPlan : ['持续监测', '核验位置', '记录轨迹', '等待升级规则'],
+    analysisMode: task.analysisMode || 'heuristic',
+    analysisSource: task.analysisSource || 'legacy-db',
+  }))
   return {
     tasks,
     modelStatus: parsed.modelStatus || defaultModelStatus,
@@ -178,7 +155,7 @@ export async function createTask(input: {
 }) {
   const db = await readDb()
   const now = new Date().toISOString()
-  const ai = buildAiAnalysis(input)
+  const analysis = await analyzeTaskInput(input)
   const task: TrainingTask = {
     id: `TRAIN-${Date.now()}`,
     name: input.name,
@@ -193,7 +170,7 @@ export async function createTask(input: {
     imageSize: Number(input.imageSize || 640),
     progress: 0,
     stages: defaultStages(),
-    ...ai,
+    ...analysis,
     createdAt: now,
     updatedAt: now,
   }

@@ -7,8 +7,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const tasks = await listTasks()
-  return NextResponse.json(tasks)
+  return NextResponse.json(await listTasks())
 }
 
 export async function POST(request: Request) {
@@ -17,19 +16,23 @@ export async function POST(request: Request) {
     if (contentType.includes('multipart/form-data')) {
       const form = await request.formData()
       const file = form.get('video')
-      if (!(file instanceof File)) {
-        return NextResponse.json({ error: '请上传视频文件' }, { status: 400 })
+      const videoFile = file instanceof File ? file : null
+      let videoPath: string | undefined
+
+      if (videoFile) {
+        const safeName = videoFile.name.replace(/[^\w.\-\u4e00-\u9fa5]/g, '_')
+        const fileName = `${Date.now()}-${safeName}`
+        videoPath = path.join(uploadDir, fileName)
+        const bytes = Buffer.from(await videoFile.arrayBuffer())
+        await writeFile(videoPath, bytes)
       }
-      const safeName = file.name.replace(/[^\w.\-\u4e00-\u9fa5]/g, '_')
-      const fileName = `${Date.now()}-${safeName}`
-      const videoPath = path.join(uploadDir, fileName)
-      const bytes = Buffer.from(await file.arrayBuffer())
-      await writeFile(videoPath, bytes)
+
       const task = await createTask({
-        name: String(form.get('name') || file.name),
+        name: String(form.get('name') || videoFile?.name || `训练任务-${Date.now()}`),
         description: String(form.get('description') || ''),
-        videoFileName: file.name,
+        videoFileName: videoFile?.name,
         videoPath,
+        videoUrl: String(form.get('videoUrl') || ''),
         modelType: String(form.get('modelType') || 'yolov8n'),
         epochs: Number(form.get('epochs') || 10),
         batchSize: Number(form.get('batchSize') || 4),

@@ -1,15 +1,40 @@
-# 边境象群热成像 AI 动态训练平台
+# 大象热成像风险平台
 
-这是面向“无人机热成像 + 边缘 AI + 象群风险预警”的动态训练平台。系统已经从静态演示页升级为：
+这是面向“无人机热成像 + 中国地图 + AI 研判 + YOLO 训练/推理”的风险预警平台。前端和 API 可部署在 Vercel，真实 YOLO 计算建议连接外部 GPU 服务或本地 worker。
 
-- Next.js 动态前端
-- 训练任务 API
-- 本地 JSON 任务数据库
-- 视频上传存储
-- 模型状态同步接口
-- GPU/本地训练 worker
+## 已接入能力
 
-## 运行网站
+- 中国地图接口：使用高德地图 JS API 2.0，配置 `NEXT_PUBLIC_AMAP_KEY` 后在首页显示中国地图与监测点。
+- 真实 AI 分析：创建任务时调用 `OPENAI_API_KEY` 对任务内容、视频信息和训练参数进行风险研判；未配置时只使用规则兜底并在页面标明。
+- 真实 YOLO：提供 `/api/yolo/predict` 推理接口。优先调用 `YOLO_SERVICE_URL`；本地或自托管 Node 环境可直接运行 `scripts/yolo_predict.py` 和 `ultralytics`。
+- 真实训练 worker：`worker/training_worker.py` 支持 `TRAINING_MODE=real`，会调用 `train_elephant_yolo.py` 并读取 YOLO 输出的 `training_summary.json`。
+
+## 环境变量
+
+复制 `.env.example` 并配置：
+
+```bash
+NEXT_PUBLIC_AMAP_KEY=
+NEXT_PUBLIC_AMAP_SECURITY_JS_CODE=
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4.1-mini
+YOLO_SERVICE_URL=
+YOLO_PYTHON=python
+YOLO_WEIGHTS=yolov8n.pt
+WORKER_API_KEY=local-worker-key
+API_URL=http://localhost:3000/api
+TRAINING_MODE=real
+```
+
+Vercel 线上重点配置：
+
+- `NEXT_PUBLIC_AMAP_KEY`
+- `NEXT_PUBLIC_AMAP_SECURITY_JS_CODE`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `YOLO_SERVICE_URL`
+
+## 本地运行
 
 ```bash
 npm install
@@ -22,61 +47,34 @@ npm run dev
 http://localhost:3000
 ```
 
-## 创建训练任务
-
-在网页中点击“上传视频训练”，选择视频并提交。系统会：
-
-1. 上传视频到 `storage/uploads/`
-2. 创建训练任务到 `storage/training-db.json`
-3. 在页面中显示等待、训练中、完成、失败等状态
-4. 自动刷新“当前模型状态与继续训练”
-
-## 启动训练 Worker
-
-默认使用模拟训练模式，适合先跑通平台流程：
+## YOLO 本地依赖
 
 ```bash
-python worker/training_worker.py
+python -m pip install -r requirements-training.txt
+python scripts/yolo_predict.py --source path/to/image.jpg --weights yolov8n.pt
 ```
 
-真实 YOLO 训练模式：
+启动真实训练 worker：
 
 ```bash
 set TRAINING_MODE=real
+set API_URL=http://localhost:3000/api
 python worker/training_worker.py
-```
-
-真实训练会调用项目根目录下的 `train_elephant_yolo.py`。请先安装 Python 训练依赖：
-
-```bash
-pip install -r requirements-training.txt
 ```
 
 ## API
 
 | 方法 | 路径 | 功能 |
 | --- | --- | --- |
-| GET | `/api/tasks` | 获取训练任务列表 |
-| POST | `/api/tasks` | 上传视频并创建训练任务 |
-| GET | `/api/tasks/:id` | 查看单个任务 |
+| GET | `/api/tasks` | 获取训练任务 |
+| POST | `/api/tasks` | 创建任务，触发 AI 研判 |
+| GET | `/api/tasks/:id` | 获取单个任务 |
 | PUT | `/api/tasks/:id` | worker 回写任务状态 |
-| DELETE | `/api/tasks/:id` | 取消任务 |
-| GET | `/api/model-status` | 获取当前模型状态 |
-| PUT | `/api/model-status` | 更新当前模型状态 |
-
-## 目录结构
-
-```text
-src/app/page.tsx                 动态训练平台首页
-src/app/api/tasks/               训练任务 API
-src/app/api/model-status/        模型状态 API
-src/lib/store.ts                 JSON 任务数据库
-worker/training_worker.py        训练 worker
-storage/                         上传视频、任务数据库和结果目录
-```
+| POST | `/api/tasks/:id/aggregate` | 汇总训练结果 |
+| GET | `/api/model-status` | 获取模型状态 |
+| POST | `/api/yolo/predict` | YOLO 图片推理 |
+| GET | `/api/integrations/status` | 查看地图、AI、YOLO 配置状态 |
 
 ## 部署说明
 
-Vercel 可以部署前端与 API。真实生产环境建议把 `storage/` 替换为 Vercel Blob / S3，把 JSON 任务库替换为 Neon Postgres / Vercel Postgres，再让 GPU worker 轮询线上 API。
-
-当前版本优先保证本机完整跑通：网页上传视频、API 创建任务、worker 处理任务、前端实时显示训练状态。
+GitHub 已连接 Vercel 后，推送到 `main` 会触发部署。Vercel 不适合长时间 GPU 训练，所以线上 YOLO 建议配置 `YOLO_SERVICE_URL` 指向独立 GPU 服务；本地或服务器 worker 负责训练和推理。
