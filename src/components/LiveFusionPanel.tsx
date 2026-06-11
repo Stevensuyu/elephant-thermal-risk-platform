@@ -63,7 +63,6 @@ export default function LiveFusionPanel() {
         <p className="mt-1 text-sm leading-6 text-slate-600">
           {data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2 和 AI 分析接口。'}
         </p>
-        {data?.acquisitionSummary ? <div className="mt-2 text-xs text-slate-500">采集：{data.acquisitionSummary}</div> : null}
       </div>
 
       {data?.latestTask ? (
