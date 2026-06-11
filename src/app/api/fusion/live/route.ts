@@ -10,6 +10,8 @@ export async function GET() {
   const integrations = await readIntegrations()
   const db = await readDb()
   const modelStatus = db.modelStatus
+  const latestTask = db.tasks[0]
+  const activeTask = latestTask || db.tasks.find((task) => task.status === 'RUNNING') || db.tasks.find((task) => ['RED', 'ORANGE'].includes(task.warningLevel))
 
   const analysis = await analyzeTaskInput({
     name: '实时热成像研判',
@@ -19,6 +21,8 @@ export async function GET() {
       `热成像：${integrations.thermal.streamUrl || integrations.thermal.snapshotUrl || '未配置'}`,
       `YOLO 服务：${integrations.yolo.serviceUrl || '未配置'}`,
       `模型状态：${modelStatus.status}`,
+      `最近任务：${activeTask?.name || '无'}`,
+      `预警等级：${activeTask ? activeTask.warningLevel : 'BLUE'}`,
     ].join('；'),
     videoUrl: integrations.thermal.snapshotUrl || integrations.thermal.streamUrl || '',
     modelType: 'ai-fusion',
@@ -36,6 +40,15 @@ export async function GET() {
       weights: integrations.yolo.weights,
     },
     modelStatus,
+    latestTask: activeTask ? {
+      id: activeTask.id,
+      name: activeTask.name,
+      status: activeTask.status,
+      warningLevel: activeTask.warningLevel,
+      intrusionRisk: activeTask.intrusionRisk,
+      predictionWindow: activeTask.predictionWindow,
+      updatedAt: activeTask.updatedAt,
+    } : null,
     analysis,
     summary: analysis.aiSummary,
   })

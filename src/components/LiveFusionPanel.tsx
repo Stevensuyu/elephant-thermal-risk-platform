@@ -9,6 +9,7 @@ type LiveFusion = {
   map: { apiKey: string }
   yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
   modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
+  latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
   summary: string
 }
@@ -57,6 +58,15 @@ export default function LiveFusionPanel() {
         <div className="text-sm font-medium text-slate-900">研判摘要</div>
         <p className="mt-1 text-sm leading-6 text-slate-600">{data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2 和 AI 分析接口。'}</p>
       </div>
+
+      {data?.latestTask ? (
+        <div className="rounded-md bg-white p-3 text-xs text-slate-600">
+          <div className="text-sm font-medium text-slate-900">当前任务</div>
+          <div className="mt-1">名称：{data.latestTask.name}</div>
+          <div>状态：{data.latestTask.status} · {data.latestTask.warningLevel} · {data.latestTask.intrusionRisk}</div>
+          <div>窗口：{data.latestTask.predictionWindow}</div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
         <div className="rounded-md bg-white p-3">DJI：{data?.dji.cloudApiBaseUrl || data?.dji.openApiBaseUrl || '未配置'}</div>
