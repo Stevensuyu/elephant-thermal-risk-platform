@@ -22,6 +22,14 @@ interface TaskLikeInput {
   imageSize?: number
 }
 
+interface AnalysisRuntimeConfig {
+  ai?: {
+    baseUrl?: string
+    apiKey?: string
+    model?: string
+  }
+}
+
 function heuristicAnalysis(input: TaskLikeInput): AnalysisResult {
   const seed = Array.from(`${input.name}${input.description || ''}${input.videoFileName || ''}${input.videoUrl || ''}`)
     .reduce((sum, char) => sum + char.charCodeAt(0), 0)
@@ -68,15 +76,16 @@ function extractJson(text: string) {
   }
 }
 
-export async function analyzeTaskInput(input: TaskLikeInput): Promise<AnalysisResult> {
-  const apiKey = process.env.OPENAI_API_KEY
-  const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+export async function analyzeTaskInput(input: TaskLikeInput, runtimeConfig?: AnalysisRuntimeConfig): Promise<AnalysisResult> {
+  const apiKey = runtimeConfig?.ai?.apiKey || process.env.OPENAI_API_KEY
+  const model = runtimeConfig?.ai?.model || process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+  const baseUrl = runtimeConfig?.ai?.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
   if (!apiKey) {
     return heuristicAnalysis(input)
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

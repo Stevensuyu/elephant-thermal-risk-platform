@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import path from 'path'
 import { writeFile } from 'fs/promises'
 import { createTask, listTasks, uploadDir } from '@/lib/store'
+import type { IntegrationConfig } from '@/lib/integrations'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
         epochs: Number(form.get('epochs') || 10),
         batchSize: Number(form.get('batchSize') || 4),
         imageSize: Number(form.get('imageSize') || 640),
+        integrationConfig: parseIntegrationConfig(form.get('integrationConfig')),
       })
       return NextResponse.json(task, { status: 201 })
     }
@@ -50,10 +52,26 @@ export async function POST(request: Request) {
       epochs: body.epochs,
       batchSize: body.batchSize,
       imageSize: body.imageSize,
+      integrationConfig: parseIntegrationConfig(body.integrationConfig),
     })
     return NextResponse.json(task, { status: 201 })
   } catch (error) {
     console.error(error)
     return NextResponse.json({ error: '创建任务失败' }, { status: 500 })
   }
+}
+
+function parseIntegrationConfig(value: unknown): Partial<IntegrationConfig> | undefined {
+  if (!value) return undefined
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as Partial<IntegrationConfig>
+    } catch {
+      return undefined
+    }
+  }
+  if (typeof value === 'object') {
+    return value as Partial<IntegrationConfig>
+  }
+  return undefined
 }

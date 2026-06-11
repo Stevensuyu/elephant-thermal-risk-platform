@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 import { analyzeTaskInput, type AnalysisResult } from '@/lib/analysis'
+import type { IntegrationConfig } from '@/lib/integrations'
 
 export type TaskStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
 export type StageKey = 'upload' | 'frames' | 'label' | 'train' | 'sync'
@@ -152,10 +153,11 @@ export async function createTask(input: {
   epochs?: number
   batchSize?: number
   imageSize?: number
+  integrationConfig?: Partial<IntegrationConfig>
 }) {
   const db = await readDb()
   const now = new Date().toISOString()
-  const analysis = await analyzeTaskInput(input)
+  const analysis = await analyzeTaskInput(input, input.integrationConfig ? { ai: input.integrationConfig.ai } : undefined)
   const task: TrainingTask = {
     id: `TRAIN-${Date.now()}`,
     name: input.name,

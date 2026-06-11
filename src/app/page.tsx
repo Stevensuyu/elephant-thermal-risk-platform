@@ -120,6 +120,7 @@ export default function Home() {
 
   const handleCreateTask = async (data: CreateTaskPayload) => {
     const form = new FormData()
+    const integrationDraft = readIntegrationDraft()
     form.set('name', data.name)
     form.set('description', data.description)
     form.set('videoUrl', data.videoUrl)
@@ -127,6 +128,7 @@ export default function Home() {
     form.set('epochs', String(data.epochs))
     form.set('batchSize', String(data.batchSize))
     form.set('imageSize', String(data.imageSize))
+    if (integrationDraft) form.set('integrationConfig', JSON.stringify(integrationDraft))
     if (data.video) form.set('video', data.video)
     await fetch('/api/tasks', { method: 'POST', body: form })
     await refresh()

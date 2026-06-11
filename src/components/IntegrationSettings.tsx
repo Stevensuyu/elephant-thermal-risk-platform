@@ -81,6 +81,11 @@ export default function IntegrationSettings() {
     { label: '腾讯位置服务', href: 'https://lbs.qq.com/webservice_v1/index.html' },
   ]
 
+  const aiKeyHint =
+    config.ai.providerName.toLowerCase().includes('openai') && config.ai.apiKey && !config.ai.apiKey.startsWith('sk-')
+      ? '当前 AI 服务名是 OpenAI，但这个 Key 看起来不像 OpenAI API Key，通常不会是这种格式。'
+      : ''
+
   return (
     <div className="space-y-4">
       <section className="grid grid-cols-2 gap-3">
@@ -106,6 +111,8 @@ export default function IntegrationSettings() {
           {input(config.ai.apiKey, (apiKey) => setConfig({ ...config, ai: { ...config.ai, apiKey } }))}
         </Field>
       </section>
+
+      {aiKeyHint ? <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">{aiKeyHint}</div> : null}
 
       <section className="grid grid-cols-2 gap-3">
         <Field title="DJI 平台名" note="司空 / FlightHub 2">
