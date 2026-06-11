@@ -133,8 +133,12 @@ export default function IntegrationSettings() {
           Roboflow Hosted API
         </a>
         {' · '}
-        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/resources/private/landing" target="_blank" rel="noreferrer">
-          DJI FlightHub 2 OpenAPI
+        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/cloud-api" target="_blank" rel="noreferrer">
+          DJI Cloud API
+        </a>
+        {' · '}
+        <a className="text-blue-600 hover:underline" href="https://developer.dji.com/flighthub-api" target="_blank" rel="noreferrer">
+          FlightHub Mapping API
         </a>
         {' · '}
         <a className="text-blue-600 hover:underline" href="https://lbs.qq.com/webservice_v1/index.html" target="_blank" rel="noreferrer">
