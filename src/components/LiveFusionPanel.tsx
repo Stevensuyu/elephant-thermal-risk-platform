@@ -59,6 +59,8 @@ export default function LiveFusionPanel() {
       <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
         <div className="rounded-md bg-white p-3">DJI：{data?.dji.cloudApiBaseUrl || data?.dji.openApiBaseUrl || '未配置'}</div>
         <div className="rounded-md bg-white p-3">YOLO：{data?.yolo?.configured ? data.yolo.providerName : '未配置'}</div>
+        <div className="rounded-md bg-white p-3">热成像：{data?.thermal.streamUrl || data?.thermal.snapshotUrl ? data.thermal.sourceName : '未配置'}</div>
+        <div className="rounded-md bg-white p-3">地图：{data?.map.apiKey ? '高德已接入' : '未配置'}</div>
       </div>
     </div>
   )
