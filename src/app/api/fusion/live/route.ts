@@ -6,6 +6,16 @@ import { readDb } from '@/lib/store'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+function readOverride(request: Request) {
+  const raw = new URL(request.url).searchParams.get('config')
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
 async function fetchProbe(url: string, method: 'HEAD' | 'GET' = 'HEAD') {
   if (!url) return null
   const controller = new AbortController()
@@ -31,8 +41,8 @@ async function fetchProbe(url: string, method: 'HEAD' | 'GET' = 'HEAD') {
   }
 }
 
-export async function GET() {
-  const integrations = await readIntegrations()
+export async function GET(request: Request) {
+  const integrations = await readIntegrations(readOverride(request))
   const db = await readDb()
   const modelStatus = db.modelStatus
   const latestTask = db.tasks[0]

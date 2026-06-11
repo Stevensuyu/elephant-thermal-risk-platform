@@ -20,8 +20,10 @@ import ChinaMap, { type ChinaMapMarker } from '@/components/ChinaMap'
 import CreateTaskModal, { type CreateTaskPayload } from '@/components/CreateTaskModal'
 import IntegrationSettings from '@/components/IntegrationSettings'
 import LiveFusionPanel from '@/components/LiveFusionPanel'
+import PersonnelManagement from '@/components/PersonnelManagement'
 import Sidebar from '@/components/Sidebar'
 import TaskCard from '@/components/TaskCard'
+import { buildIntegrationQuery, readIntegrationDraft } from '@/lib/integration-client'
 import type { ModelStatus, TrainingTask, WarningLevel } from '@/lib/store'
 
 type IntegrationStatus = {
@@ -94,11 +96,12 @@ export default function Home() {
   const refresh = async () => {
     setIsRefreshing(true)
     try {
+      const integrationQuery = buildIntegrationQuery(readIntegrationDraft())
       const [taskResponse, modelResponse, integrationResponse, fusionResponse] = await Promise.all([
         fetch('/api/tasks', { cache: 'no-store' }),
         fetch('/api/model-status', { cache: 'no-store' }),
-        fetch('/api/integrations/status', { cache: 'no-store' }),
-        fetch('/api/fusion/live', { cache: 'no-store' }),
+        fetch(`/api/integrations/status${integrationQuery}`, { cache: 'no-store' }),
+        fetch(`/api/fusion/live${integrationQuery}`, { cache: 'no-store' }),
       ])
       setTasks(await taskResponse.json())
       setModelStatus(await modelResponse.json())
@@ -221,6 +224,7 @@ export default function Home() {
           {activeTab === 'ai' ? <AiTab {...tabProps} /> : null}
           {activeTab === 'dispatch' ? <DispatchTab {...tabProps} /> : null}
           {activeTab === 'history' ? <HistoryTab {...tabProps} /> : null}
+          {activeTab === 'personnel' ? <PersonnelTab {...tabProps} /> : null}
           {activeTab === 'settings' ? <SettingsTab {...tabProps} /> : null}
         </main>
       </div>
@@ -368,6 +372,10 @@ function HistoryTab(props: TabStateProps) {
       </Panel>
     </section>
   )
+}
+
+function PersonnelTab(props: TabStateProps) {
+  return <PersonnelManagement currentLevel={props.currentLevel} />
 }
 
 function SettingsTab(props: TabStateProps) {

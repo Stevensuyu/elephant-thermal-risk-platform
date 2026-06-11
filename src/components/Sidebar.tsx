@@ -1,4 +1,4 @@
-import { BarChart3, BrainCircuit, History, Radar, Settings, ShieldAlert } from 'lucide-react'
+import { BarChart3, BrainCircuit, History, Radar, Settings, ShieldAlert, Users } from 'lucide-react'
 
 interface SidebarProps {
   activeTab: string
@@ -12,6 +12,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'ai', label: 'AI 研判', icon: BrainCircuit },
     { id: 'dispatch', label: '处警联动', icon: Radar },
     { id: 'history', label: '留痕复盘', icon: History },
+    { id: 'personnel', label: '人员管理', icon: Users },
     { id: 'settings', label: '系统设置', icon: Settings },
   ]
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { mergeIntegrationDraft, readIntegrationDraft, writeIntegrationDraft } from '@/lib/integration-client'
 
 type IntegrationConfig = {
   map: { provider: 'amap'; apiKey: string; securityJsCode: string }
@@ -35,7 +36,10 @@ export default function IntegrationSettings() {
   useEffect(() => {
     void (async () => {
       const response = await fetch('/api/integrations/config', { cache: 'no-store' })
-      if (response.ok) setConfig(await response.json())
+      if (response.ok) {
+        const serverConfig = await response.json()
+        setConfig(mergeIntegrationDraft(serverConfig, readIntegrationDraft()))
+      }
     })()
   }, [])
 
@@ -49,7 +53,9 @@ export default function IntegrationSettings() {
         body: JSON.stringify(config),
       })
       if (!response.ok) throw new Error('保存失败')
-      setConfig(await response.json())
+      const saved = await response.json()
+      writeIntegrationDraft(saved)
+      setConfig(saved)
       setMessage('已保存')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败')
@@ -149,7 +155,7 @@ export default function IntegrationSettings() {
       </section>
 
       <div className="flex items-center justify-between rounded-md bg-slate-50 p-3 text-sm">
-        <span className="text-slate-600">{message || '保存后，实时研判和系统状态会直接读取这里的配置。'}</span>
+        <span className="text-slate-600">{message || '保存后会写入浏览器本地，并同步到当前服务，实时研判和系统状态会直接读取这里的配置。'}</span>
         <button onClick={save} disabled={saving} className="rounded-md bg-slate-900 px-4 py-2 font-medium text-white disabled:opacity-60">
           {saving ? '保存中...' : '保存配置'}
         </button>

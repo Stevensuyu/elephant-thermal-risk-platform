@@ -56,6 +56,18 @@ export interface IntegrationStatus {
   threeD: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
 }
 
+export function mergeIntegrationConfig(current: IntegrationConfig, patch?: Partial<IntegrationConfig> | null): IntegrationConfig {
+  if (!patch) return current
+  return {
+    map: { ...current.map, ...(patch.map || {}) },
+    ai: { ...current.ai, ...(patch.ai || {}) },
+    dji: { ...current.dji, ...(patch.dji || {}) },
+    yolo: { ...current.yolo, ...(patch.yolo || {}) },
+    thermal: { ...current.thermal, ...(patch.thermal || {}) },
+    threeD: { ...current.threeD, ...(patch.threeD || {}) },
+  }
+}
+
 const defaultConfig: IntegrationConfig = {
   map: {
     provider: 'amap',
@@ -123,21 +135,24 @@ async function ensureStore() {
   }
 }
 
-export async function readIntegrations(): Promise<IntegrationConfig> {
+export async function readIntegrations(override?: Partial<IntegrationConfig> | null): Promise<IntegrationConfig> {
   await ensureStore()
   try {
     const raw = await readFile(integrationsPath, 'utf8')
     const parsed = JSON.parse(raw.replace(/^\uFEFF/, '')) as Partial<IntegrationConfig>
-    return {
-      map: { ...defaultConfig.map, ...(parsed.map || {}) },
-      ai: { ...defaultConfig.ai, ...(parsed.ai || {}) },
-      dji: { ...defaultConfig.dji, ...(parsed.dji || {}) },
-      yolo: { ...defaultConfig.yolo, ...(parsed.yolo || {}) },
-      thermal: { ...defaultConfig.thermal, ...(parsed.thermal || {}) },
-      threeD: { ...defaultConfig.threeD, ...(parsed.threeD || {}) },
-    }
+    return mergeIntegrationConfig(
+      {
+        map: { ...defaultConfig.map, ...(parsed.map || {}) },
+        ai: { ...defaultConfig.ai, ...(parsed.ai || {}) },
+        dji: { ...defaultConfig.dji, ...(parsed.dji || {}) },
+        yolo: { ...defaultConfig.yolo, ...(parsed.yolo || {}) },
+        thermal: { ...defaultConfig.thermal, ...(parsed.thermal || {}) },
+        threeD: { ...defaultConfig.threeD, ...(parsed.threeD || {}) },
+      },
+      override,
+    )
   } catch {
-    return defaultConfig
+    return mergeIntegrationConfig(defaultConfig, override)
   }
 }
 
@@ -148,20 +163,13 @@ export async function writeIntegrations(config: IntegrationConfig) {
 
 export async function updateIntegrations(patch: Partial<IntegrationConfig>) {
   const current = await readIntegrations()
-  const next: IntegrationConfig = {
-    map: { ...current.map, ...(patch.map || {}) },
-    ai: { ...current.ai, ...(patch.ai || {}) },
-    dji: { ...current.dji, ...(patch.dji || {}) },
-    yolo: { ...current.yolo, ...(patch.yolo || {}) },
-    thermal: { ...current.thermal, ...(patch.thermal || {}) },
-    threeD: { ...current.threeD, ...(patch.threeD || {}) },
-  }
+  const next = mergeIntegrationConfig(current, patch)
   await writeIntegrations(next)
   return next
 }
 
-export async function getIntegrationStatus(): Promise<IntegrationStatus> {
-  const config = await readIntegrations()
+export async function getIntegrationStatus(override?: Partial<IntegrationConfig> | null): Promise<IntegrationStatus> {
+  const config = await readIntegrations(override)
   const mapReachable = await probeUrl('https://webapi.amap.com/maps?v=2.0', 'HEAD')
   const aiReachable = await probeUrl(config.ai.baseUrl, 'HEAD')
   const djiReachable = await probeUrl(config.dji.cloudApiBaseUrl || config.dji.openApiBaseUrl, 'HEAD')

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Activity, MapPinned, Radar, RefreshCw, Satellite } from 'lucide-react'
+import { buildIntegrationQuery, readIntegrationDraft } from '@/lib/integration-client'
 
 type LiveFusion = {
   source: string
@@ -26,7 +27,7 @@ export default function LiveFusionPanel() {
   const refresh = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/fusion/live', { cache: 'no-store' })
+      const response = await fetch(`/api/fusion/live${buildIntegrationQuery(readIntegrationDraft())}`, { cache: 'no-store' })
       if (response.ok) setData(await response.json())
     } finally {
       setLoading(false)
