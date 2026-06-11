@@ -8,6 +8,7 @@ type LiveFusion = {
   dji: { providerName: string; cloudApiBaseUrl: string; openApiBaseUrl: string; websocketUrl: string }
   map: { apiKey: string }
   yolo: { configured: boolean; providerName: string; serviceUrl: string; weights: string } | null
+  threeD: { configured: boolean; providerName: string; serviceUrl: string; snapshotUrl: string } | null
   modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
   latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   connectionSummary: Array<{ name: string; configured: boolean; endpoint: string; status: string }>
@@ -51,17 +52,17 @@ export default function LiveFusionPanel() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-xs text-slate-600">
+      <div className="grid grid-cols-4 gap-2 text-xs text-slate-600">
         <Mini icon={Radar} label="风险" value={data ? `${data.analysis.warningLevel} / ${data.analysis.intrusionRisk}` : '未加载'} />
         <Mini icon={MapPinned} label="地图" value={data?.map.apiKey ? '已接入' : '待配置'} />
         <Mini icon={Activity} label="热成像" value={data?.thermal.streamUrl || data?.thermal.snapshotUrl ? '在线' : '未接入'} />
-        <Mini icon={Satellite} label="模型" value={data?.modelStatus?.status || '未加载'} />
+        <Mini icon={Satellite} label="三维" value={data?.threeD?.configured ? '已接入' : '待配置'} />
       </div>
 
       <div className="rounded-md bg-white p-3">
         <div className="text-sm font-medium text-slate-900">研判摘要</div>
         <p className="mt-1 text-sm leading-6 text-slate-600">
-          {data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2 和 AI 分析接口。'}
+          {data?.summary || '等待接入实时热成像源、DJI 司空/FlightHub 2、三维分析和 AI 分析接口。'}
         </p>
       </div>
 
@@ -83,7 +84,7 @@ export default function LiveFusionPanel() {
                 <div className="font-semibold text-slate-900">{item.name}</div>
                 <div className="mt-1">{item.status} · {item.endpoint}</div>
                 <div className="mt-1 text-slate-500">
-                  {data.acquisitionByName?.[item.name === '地图' ? 'map' : item.name === 'AI' ? 'ai' : item.name === 'DJI' ? 'dji' : item.name === '热成像' ? 'thermal' : 'yolo']?.ok ? '已采集' : '未采集'}
+                  {data.acquisitionByName?.[item.name === '地图' ? 'map' : item.name === 'AI' ? 'ai' : item.name === 'DJI' ? 'dji' : item.name === '热成像' ? 'thermal' : item.name === '三维分析' ? 'threeD' : 'yolo']?.ok ? '已采集' : '未采集'}
                 </div>
               </div>
             ))}
@@ -103,8 +104,8 @@ export default function LiveFusionPanel() {
         <div className="rounded-md bg-white p-3">YOLO：{data?.yolo?.configured ? data.yolo.providerName : '未配置'}</div>
         <div className="rounded-md bg-white p-3">热成像：{data?.thermal.streamUrl || data?.thermal.snapshotUrl ? data.thermal.sourceName : '未配置'}</div>
         <div className="rounded-md bg-white p-3">地图：{data?.map.apiKey ? '高德已接入' : '未配置'}</div>
+        <div className="rounded-md bg-white p-3">三维：{data?.threeD?.configured ? data.threeD.providerName : '未配置'}</div>
         <div className="rounded-md bg-white p-3">状态源：{data?.modelStatus?.source || '未配置'}</div>
-        <div className="rounded-md bg-white p-3">更新时间：{data?.modelStatus?.lastUpdated || '未更新'}</div>
       </div>
     </div>
   )

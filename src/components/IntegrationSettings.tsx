@@ -15,6 +15,7 @@ type IntegrationConfig = {
   }
   yolo: { providerName: string; serviceUrl: string; apiKey: string; weights: string }
   thermal: { streamUrl: string; snapshotUrl: string; sourceName: string }
+  threeD: { providerName: string; serviceUrl: string; snapshotUrl: string }
 }
 
 const emptyConfig: IntegrationConfig = {
@@ -23,6 +24,7 @@ const emptyConfig: IntegrationConfig = {
   dji: { providerName: 'DJI FlightHub 2', cloudApiBaseUrl: '', openApiBaseUrl: '', websocketUrl: '', appKey: '', appId: '', accessToken: '', workspaceId: '' },
   yolo: { providerName: 'Ultralytics / Roboflow', serviceUrl: '', apiKey: '', weights: 'yolov8n.pt' },
   thermal: { streamUrl: '', snapshotUrl: '', sourceName: '实时热成像流' },
+  threeD: { providerName: '三维分析服务', serviceUrl: '', snapshotUrl: '' },
 }
 
 export default function IntegrationSettings() {
@@ -57,7 +59,12 @@ export default function IntegrationSettings() {
   }
 
   const input = (value: string, onChange: (value: string) => void, placeholder = '') => (
-    <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+    <input
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+    />
   )
 
   const referenceLinks = [
@@ -121,6 +128,23 @@ export default function IntegrationSettings() {
         </Field>
         <Field title="YOLO 服务名" note="可改成云服务平台">
           {input(config.yolo.providerName, (providerName) => setConfig({ ...config, yolo: { ...config.yolo, providerName } }))}
+        </Field>
+      </section>
+
+      <section className="grid grid-cols-2 gap-3">
+        <Field title="三维分析服务名" note="三维立体分析 / 点云 / 重建">
+          {input(config.threeD.providerName, (providerName) => setConfig({ ...config, threeD: { ...config.threeD, providerName } }))}
+        </Field>
+        <Field title="三维分析接口" note="可配置重建或 3D 研判服务">
+          {input(config.threeD.serviceUrl, (serviceUrl) => setConfig({ ...config, threeD: { ...config.threeD, serviceUrl } }))}
+        </Field>
+        <Field title="三维分析快照" note="可选的三维静态结果地址">
+          {input(config.threeD.snapshotUrl, (snapshotUrl) => setConfig({ ...config, threeD: { ...config.threeD, snapshotUrl } }))}
+        </Field>
+        <Field title="三维分析说明" note="用于实时立体分析与分级预警">
+          <div className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500">
+            接入后，系统会在状态面板和研判摘要中显示三维分析状态。
+          </div>
         </Field>
       </section>
 

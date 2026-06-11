@@ -5,7 +5,7 @@ const root = process.cwd()
 const storageDir = path.join(root, 'storage')
 const integrationsPath = path.join(storageDir, 'integrations.json')
 
-export type IntegrationKind = 'map' | 'ai' | 'dji' | 'yolo' | 'thermal'
+export type IntegrationKind = 'map' | 'ai' | 'dji' | 'yolo' | 'thermal' | 'threeD'
 
 export interface IntegrationConfig {
   map: {
@@ -40,6 +40,11 @@ export interface IntegrationConfig {
     snapshotUrl: string
     sourceName: string
   }
+  threeD: {
+    providerName: string
+    serviceUrl: string
+    snapshotUrl: string
+  }
 }
 
 export interface IntegrationStatus {
@@ -48,6 +53,7 @@ export interface IntegrationStatus {
   dji: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
   yolo: { configured: boolean; provider: string; endpoint: string; weights: string; reachable?: boolean }
   thermal: { configured: boolean; provider: string; source: string; reachable?: boolean }
+  threeD: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
 }
 
 const defaultConfig: IntegrationConfig = {
@@ -82,6 +88,11 @@ const defaultConfig: IntegrationConfig = {
     streamUrl: '',
     snapshotUrl: '',
     sourceName: '实时热成像流',
+  },
+  threeD: {
+    providerName: '三维分析服务',
+    serviceUrl: '',
+    snapshotUrl: '',
   },
 }
 
@@ -123,6 +134,7 @@ export async function readIntegrations(): Promise<IntegrationConfig> {
       dji: { ...defaultConfig.dji, ...(parsed.dji || {}) },
       yolo: { ...defaultConfig.yolo, ...(parsed.yolo || {}) },
       thermal: { ...defaultConfig.thermal, ...(parsed.thermal || {}) },
+      threeD: { ...defaultConfig.threeD, ...(parsed.threeD || {}) },
     }
   } catch {
     return defaultConfig
@@ -142,6 +154,7 @@ export async function updateIntegrations(patch: Partial<IntegrationConfig>) {
     dji: { ...current.dji, ...(patch.dji || {}) },
     yolo: { ...current.yolo, ...(patch.yolo || {}) },
     thermal: { ...current.thermal, ...(patch.thermal || {}) },
+    threeD: { ...current.threeD, ...(patch.threeD || {}) },
   }
   await writeIntegrations(next)
   return next
@@ -154,6 +167,8 @@ export async function getIntegrationStatus(): Promise<IntegrationStatus> {
   const djiReachable = await probeUrl(config.dji.cloudApiBaseUrl || config.dji.openApiBaseUrl, 'HEAD')
   const yoloReachable = await probeUrl(config.yolo.serviceUrl, 'HEAD')
   const thermalReachable = await probeUrl(config.thermal.snapshotUrl || config.thermal.streamUrl, 'HEAD')
+  const threeDReachable = await probeUrl(config.threeD.serviceUrl || config.threeD.snapshotUrl, 'GET')
+
   return {
     map: {
       configured: isConfigured(config.map.apiKey),
@@ -184,6 +199,12 @@ export async function getIntegrationStatus(): Promise<IntegrationStatus> {
       provider: config.thermal.sourceName || '实时热成像流',
       source: config.thermal.streamUrl || config.thermal.snapshotUrl || '未配置',
       reachable: thermalReachable,
+    },
+    threeD: {
+      configured: isConfigured(config.threeD.serviceUrl) || isConfigured(config.threeD.snapshotUrl),
+      provider: config.threeD.providerName || '三维分析服务',
+      endpoint: config.threeD.serviceUrl || config.threeD.snapshotUrl || '未配置',
+      reachable: threeDReachable,
     },
   }
 }

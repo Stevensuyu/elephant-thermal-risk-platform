@@ -30,6 +30,7 @@ type IntegrationStatus = {
   dji: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
   yolo: { configured: boolean; provider: string; endpoint: string; weights: string; reachable?: boolean }
   thermal: { configured: boolean; provider: string; source: string; reachable?: boolean }
+  threeD: { configured: boolean; provider: string; endpoint: string; reachable?: boolean }
 }
 
 type LiveFusion = {
