@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { Activity, MapPinned, Radar, RefreshCw, Satellite } from 'lucide-react'
 
 type LiveFusion = {
@@ -68,7 +69,7 @@ export default function LiveFusionPanel() {
   )
 }
 
-function Mini({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string }) {
+function Mini({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="rounded-md bg-white p-3">
       <Icon size={14} className="mb-1 text-emerald-700" />
@@ -77,4 +78,3 @@ function Mini({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?:
     </div>
   )
 }
-
