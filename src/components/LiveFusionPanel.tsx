@@ -11,6 +11,8 @@ type LiveFusion = {
   modelStatus: { status: string; source: string; lastUpdated: string; version: string } | null
   latestTask: { id: string; name: string; status: string; warningLevel: string; intrusionRisk: number; predictionWindow: string; updatedAt: string } | null
   connectionSummary: Array<{ name: string; configured: boolean; endpoint: string; status: string }>
+  acquisitionSummary: string
+  acquisitionResults: Array<{ ok: boolean; status: number; endpoint: string; preview: string }> | null
   analysis: { aiSummary: string; warningLevel: string; intrusionRisk: number; predictionWindow: string }
   summary: string
 }
@@ -77,6 +79,22 @@ export default function LiveFusionPanel() {
               <div key={item.name} className="rounded-md bg-slate-50 p-2">
                 <div className="font-semibold text-slate-900">{item.name}</div>
                 <div className="mt-1">{item.status} · {item.endpoint}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {data?.acquisitionResults?.length ? (
+        <div className="rounded-md bg-white p-3 text-xs text-slate-600">
+          <div className="text-sm font-medium text-slate-900">采集结果</div>
+          <div className="mt-1">{data.acquisitionSummary || '暂无采集摘要'}</div>
+          <div className="mt-2 space-y-2">
+            {data.acquisitionResults.map((item) => (
+              <div key={item.endpoint} className="rounded-md bg-slate-50 p-2">
+                <div className="font-semibold text-slate-900">{item.ok ? '已获取' : '未获取'} · {item.status}</div>
+                <div className="mt-1 break-all">{item.endpoint}</div>
+                {item.preview ? <div className="mt-1 text-slate-500">{item.preview}</div> : null}
               </div>
             ))}
           </div>

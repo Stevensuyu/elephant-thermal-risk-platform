@@ -6,6 +6,31 @@ import { readDb } from '@/lib/store'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+async function fetchProbe(url: string, method: 'HEAD' | 'GET' = 'HEAD') {
+  if (!url) return null
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 2500)
+  try {
+    const response = await fetch(url, { method, redirect: 'follow', signal: controller.signal })
+    const text = method === 'GET' && response.ok ? (await response.text()).slice(0, 180) : ''
+    return {
+      ok: response.ok,
+      status: response.status,
+      endpoint: url,
+      preview: text,
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      endpoint: url,
+      preview: error instanceof Error ? error.message : 'fetch failed',
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export async function GET() {
   const integrations = await readIntegrations()
   const db = await readDb()
@@ -22,6 +47,15 @@ export async function GET() {
     ...item,
     status: item.configured ? '已配置' : '待配置',
   }))
+
+  const acquisitionResults = await Promise.all([
+    fetchProbe('https://webapi.amap.com/maps?v=2.0'),
+    fetchProbe(integrations.ai.baseUrl || '', 'HEAD'),
+    fetchProbe(integrations.dji.cloudApiBaseUrl || integrations.dji.openApiBaseUrl || '', 'GET'),
+    fetchProbe(integrations.thermal.snapshotUrl || integrations.thermal.streamUrl || '', 'GET'),
+    fetchProbe(integrations.yolo.serviceUrl || '', 'GET'),
+  ])
+  const acquiredCount = acquisitionResults.filter((item) => item?.ok).length
 
   const analysis = await analyzeTaskInput({
     name: '实时热成像研判',
@@ -60,6 +94,8 @@ export async function GET() {
       updatedAt: activeTask.updatedAt,
     } : null,
     connectionSummary,
+    acquisitionResults,
+    acquisitionSummary: `${acquiredCount}/${acquisitionResults.length} 项已获取到外部响应`,
     analysis,
     summary: analysis.aiSummary,
   })
