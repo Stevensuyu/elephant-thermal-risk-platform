@@ -7,9 +7,9 @@ interface TaskCardProps {
 }
 
 const statusConfig = {
-  PENDING: { color: 'bg-amber-100 text-amber-800', icon: Clock, label: '等待' },
-  RUNNING: { color: 'bg-blue-100 text-blue-800', icon: Loader2, label: '处理中' },
-  COMPLETED: { color: 'bg-emerald-100 text-emerald-800', icon: CheckCircle, label: '完成' },
+  PENDING: { color: 'bg-amber-100 text-amber-800', icon: Clock, label: '等待中' },
+  RUNNING: { color: 'bg-blue-100 text-blue-800', icon: Loader2, label: 'AI 处理中' },
+  COMPLETED: { color: 'bg-emerald-100 text-emerald-800', icon: CheckCircle, label: '已完成' },
   FAILED: { color: 'bg-red-100 text-red-800', icon: AlertCircle, label: '失败' },
 }
 
@@ -26,7 +26,7 @@ export default function TaskCard({ task, onView }: TaskCardProps) {
   const StatusIcon = config.icon
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-slate-900">{task.name}</h3>
@@ -53,7 +53,7 @@ export default function TaskCard({ task, onView }: TaskCardProps) {
 
       <div className="mb-4">
         <div className="mb-1 flex justify-between text-xs text-slate-500">
-          <span>训练进度</span>
+          <span>监测-预警-处警闭环进度</span>
           <span>{Math.round(task.progress)}%</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-slate-100">
@@ -61,14 +61,21 @@ export default function TaskCard({ task, onView }: TaskCardProps) {
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">AI: {task.analysisMode === 'openai' ? '真实模型' : '规则兜底'}</span>
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">YOLO: {task.metrics?.mode || task.modelType}</span>
-        {task.needsModelConfirm ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">待汇总</span> : null}
+      <div className="mb-4 grid grid-cols-5 gap-1">
+        {task.stages?.map((stage) => (
+          <div key={stage.key} className="rounded bg-slate-50 px-1.5 py-2 text-center">
+            <div className="truncate text-[11px] font-medium text-slate-700">{stage.name}</div>
+            <div className="mt-1 text-[10px] text-slate-500">{stage.status}</div>
+          </div>
+        ))}
       </div>
 
+      {task.needsModelConfirm ? (
+        <div className="mb-4 rounded-md bg-emerald-50 p-3 text-xs font-medium text-emerald-700">训练结果已生成，等待确认后汇总到当前模型。</div>
+      ) : null}
+
       <button onClick={() => onView(task)} className="w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800">
-        查看研判详情
+        查看智能研判详情
       </button>
     </div>
   )
