@@ -9,6 +9,7 @@ import JudgeView from '@/components/disposal/disposal-judge-view'
 import AlertCenterView from '@/components/alert/alert-center-view'
 import MyTasksView from '@/components/common/common-my-tasks-view'
 import SettingsView from '@/components/settings/settings-main-view'
+import ScreenView from '@/components/screen/screen-view'
 import AlertDetailCard from '@/components/alert/alert-detail-card-modal'
 import LoginScreen, { type LoginResult } from '@/components/common/common-login-screen'
 import MockBootstrap from '@/components/common/common-mock-bootstrap'
@@ -40,6 +41,7 @@ const levelStyle: Record<WarningLevel, { label: string; short: string; bg: strin
 }
 
 const tabMeta: Record<string, { title: string }> = {
+  screen: { title: '数据大屏' },
   dashboard: { title: '空中智能象群风险研判预警与处置系统' },
   monitor: { title: '实时监控' },
   judge: { title: '警情研判' },
@@ -53,9 +55,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem('elephant_active_tab')
-      if (saved) return saved
+      // 进入页面默认展示「数据大屏」;旧版记忆的 dashboard(原默认页)迁移为大屏
+      if (saved && saved !== 'dashboard') return saved
     }
-    return 'dashboard'
+    return 'screen'
   })
   const [pendingCount, setPendingCount] = useState(0)
   const [tasks, setTasks] = useState<TrainingTask[]>([])
@@ -459,7 +462,7 @@ export default function Home() {
             onMobileClose={() => setSidebarOpen(false)}
           />
 
-          <main className="flex-1 p-2 md:p-3">
+          <main className={`min-w-0 flex-1 ${activeTab === 'screen' ? 'h-screen overflow-hidden p-0' : 'p-2 md:p-3'}`}>
             {/* 手机端菜单按钮 */}
             <div className="mb-2 flex items-center gap-2 md:hidden">
               <button
@@ -471,6 +474,11 @@ export default function Home() {
               </button>
               <span className="text-[12px] text-slate-400">{meta.title}</span>
             </div>
+
+            {activeTab === 'screen' && (
+              <ScreenView tasks={tasks} fleet={fleet} onOpenTask={handleViewTask} />
+            )}
+
             {activeTab === 'dashboard' && (
             <header className="mb-3 overflow-hidden rounded-lg bg-[#0f1f3a] text-white shadow-lg">
               <div className="flex flex-col items-center gap-1.5 p-3">
