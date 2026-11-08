@@ -55,10 +55,14 @@ export default function ScreenView({ tasks, fleet, onOpenTask }: Props) {
         <ScreenHeader tasks={tasks} closedRatio={eff.closedRatio} avgResponseMin={eff.avgResponseMin} />
 
         <div className="flex min-h-0 flex-1 gap-3 px-4 pb-4 pt-2">
-          {/* 左列 */}
+          {/* 左列:实时预警(稍高) + 分析笔录 */}
           <div className="flex w-[460px] shrink-0 flex-col gap-3">
-            <ScreenAlertsPanel tasks={tasks} onOpenTask={onOpenTask} />
-            <ScreenNotesPanel tasks={tasks} />
+            <div className="flex min-h-0 flex-[11] flex-col">
+              <ScreenAlertsPanel tasks={tasks} onOpenTask={onOpenTask} />
+            </div>
+            <div className="flex min-h-0 flex-[10] flex-col">
+              <ScreenNotesPanel tasks={tasks} />
+            </div>
           </div>
 
           {/* 中列:地图 */}
@@ -70,10 +74,14 @@ export default function ScreenView({ tasks, fleet, onOpenTask }: Props) {
             </div>
           </div>
 
-          {/* 右列 */}
+          {/* 右列:地点分析 + 精进反思(填满整列高度) */}
           <div className="flex w-[460px] shrink-0 flex-col gap-3">
-            <ScreenLocationsPanel tasks={tasks} droneNames={droneNames} droneOnline={droneOnline} />
-            <ScreenReflectionPanel />
+            <div className="flex min-h-0 flex-[11] flex-col">
+              <ScreenLocationsPanel tasks={tasks} droneNames={droneNames} droneOnline={droneOnline} />
+            </div>
+            <div className="flex min-h-0 flex-[10] flex-col">
+              <ScreenReflectionPanel />
+            </div>
           </div>
         </div>
       </div>

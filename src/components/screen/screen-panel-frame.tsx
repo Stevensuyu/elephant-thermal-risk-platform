@@ -21,7 +21,7 @@ export default function ScreenPanelFrame({
 }) {
   return (
     <section
-      className={`relative flex min-h-0 flex-col border border-[#1d4ed8]/30 ${className}`}
+      className={`relative flex h-full min-h-0 flex-col border border-[#1d4ed8]/30 ${className}`}
       style={{ background: 'linear-gradient(180deg, rgba(10,28,64,0.85) 0%, rgba(5,16,42,0.92) 100%)', boxShadow: 'inset 0 0 24px rgba(20,80,180,0.18)' }}
     >
       {/* 四角包角 */}
