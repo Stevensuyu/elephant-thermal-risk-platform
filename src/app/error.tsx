@@ -11,6 +11,17 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error('[GlobalError] 客户端渲染异常:', error)
+    // 部署后旧页面引用的 chunk 已被替换,懒加载会失败(ChunkLoadError)。
+    // 此时整页刷新一次即可拿到新版本;用 sessionStorage 防止无限刷新循环。
+    const msg = error?.message || ''
+    if (/Loading chunk|ChunkLoadError|Failed to fetch dynamically imported module/i.test(msg)) {
+      const key = 'tyhx_chunk_reload_at'
+      const last = Number(sessionStorage.getItem(key) || 0)
+      if (Date.now() - last > 10000) {
+        sessionStorage.setItem(key, String(Date.now()))
+        window.location.reload()
+      }
+    }
   }, [error])
 
   return (
@@ -59,7 +70,7 @@ export default function GlobalError({
         重新加载
       </button>
       <div style={{ fontSize: 12, color: '#64748b' }}>
-        若反复出现，请硬刷新（Ctrl/Cmd + Shift + R）或重启开发服务器
+        若反复出现，请硬刷新（Ctrl/Cmd + Shift + R）或清除浏览器缓存后重试
       </div>
     </div>
   )
