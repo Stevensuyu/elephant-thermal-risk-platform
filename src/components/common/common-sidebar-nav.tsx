@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart3, ScanSearch, BrainCircuit, LogOut, ShieldCheck, BellRing, Settings2, ClipboardList, MonitorPlay, ChevronsLeft, ChevronsRight, type LucideIcon } from 'lucide-react'
+import { BarChart3, ScanSearch, BrainCircuit, LogOut, ShieldCheck, BellRing, Settings2, ClipboardList, MonitorPlay, ChevronsLeft, ChevronsRight, RadioTower, Users, type LucideIcon } from 'lucide-react'
 import { ROLES, dataScopeLabel, accountOf, type RoleId } from '@/lib/auth/auth-role-permissions'
 
 interface SidebarProps {
@@ -49,14 +49,42 @@ export default function Sidebar({ activeTab, onTabChange, currentRole, currentUs
     return () => clearInterval(t)
   }, [])
 
-  const menuItems = [
-    { id: 'screen',   label: '数据大屏', icon: MonitorPlay,  color: 'from-cyan-500 to-blue-400' },
-    { id: 'dashboard', label: '态势总览', icon: BarChart3,   color: 'from-blue-500 to-cyan-400' },
-    { id: 'mytasks',   label: '我的任务', icon: ClipboardList, color: 'from-violet-500 to-purple-400' },
-    { id: 'monitor',   label: '实时监控', icon: ScanSearch,  color: 'from-emerald-500 to-teal-400' },
-    { id: 'judge',     label: '警情研判', icon: BrainCircuit, color: 'from-violet-500 to-purple-400' },
-    { id: 'alerts',    label: '警情中心', icon: BellRing,     color: 'from-amber-500 to-orange-400' },
-    { id: 'settings',  label: '系统设置', icon: Settings2,     color: 'from-slate-500 to-slate-400' },
+  // 分组导航(参照上云指挥平台的信息架构:态势 / 警情处置 / 任务协同 / 数据资产 / 系统管理)
+  const menuGroups: { label: string; items: { id: string; label: string; icon: LucideIcon; color: string }[] }[] = [
+    {
+      label: '态势',
+      items: [
+        { id: 'screen', label: '数据大屏', icon: MonitorPlay, color: 'from-cyan-500 to-blue-400' },
+      ],
+    },
+    {
+      label: '警情处置',
+      items: [
+        { id: 'monitor', label: '实时监控', icon: ScanSearch, color: 'from-emerald-500 to-teal-400' },
+        { id: 'judge', label: '警情研判', icon: BrainCircuit, color: 'from-violet-500 to-purple-400' },
+        { id: 'alerts', label: '警情中心', icon: BellRing, color: 'from-amber-500 to-orange-400' },
+      ],
+    },
+    {
+      label: '任务协同',
+      items: [
+        { id: 'mytasks', label: '我的任务', icon: ClipboardList, color: 'from-violet-500 to-purple-400' },
+      ],
+    },
+    {
+      label: '数据资产',
+      items: [
+        { id: 'devices', label: '设备管理', icon: RadioTower, color: 'from-sky-500 to-cyan-400' },
+        { id: 'stats', label: '数据统计', icon: BarChart3, color: 'from-blue-500 to-indigo-400' },
+      ],
+    },
+    {
+      label: '系统管理',
+      items: [
+        { id: 'users', label: '用户管理', icon: Users, color: 'from-rose-500 to-pink-400' },
+        { id: 'settings', label: '系统设置', icon: Settings2, color: 'from-slate-500 to-slate-400' },
+      ],
+    },
   ]
 
   // 手机端:点击菜单项后关闭抽屉
@@ -171,43 +199,56 @@ export default function Sidebar({ activeTab, onTabChange, currentRole, currentUs
         )}
       </div>
 
-      {/* Nav */}
-      <nav className={`flex-1 space-y-1 ${isCollapsed ? 'px-2' : 'px-3'}`}>
-        {menuItems.filter((m) => ROLES[currentRole].menus.includes(m.id)).map((item) => {
-          const Icon = item.icon
-          const isActive = activeTab === item.id
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleTabChange(item.id)}
-              title={isCollapsed ? item.label : undefined}
-              className={`group relative flex w-full items-center rounded-lg text-left text-sm transition-all duration-200 ${
-                isCollapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
-              } ${
-                isActive ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
-              }`}
-            >
-              {isActive && (
-                <div className={`absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b ${item.color}`} />
+      {/* Nav:分组渲染,组内按角色菜单过滤,空组隐藏 */}
+      <nav className={`flex-1 space-y-3 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        {menuGroups
+          .map((g) => ({ ...g, items: g.items.filter((m) => ROLES[currentRole].menus.includes(m.id)) }))
+          .filter((g) => g.items.length > 0)
+          .map((g) => (
+            <div key={g.label}>
+              {!isCollapsed && (
+                <div className="mb-1 px-1 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">{g.label}</div>
               )}
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
-                isActive ? `bg-gradient-to-br ${item.color} shadow-lg` : 'bg-slate-800/50 group-hover:bg-slate-700/50'
-              }`}>
-                <Icon size={16} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'} />
+              {isCollapsed && <div className="mx-auto mb-2 h-px w-8 bg-slate-700/60" />}
+              <div className="space-y-1">
+                {g.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleTabChange(item.id)}
+                      title={isCollapsed ? item.label : undefined}
+                      className={`group relative flex w-full items-center rounded-lg text-left text-sm transition-all duration-200 ${
+                        isCollapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
+                      } ${
+                        isActive ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                      }`}
+                    >
+                      {isActive && (
+                        <div className={`absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b ${item.color}`} />
+                      )}
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+                        isActive ? `bg-gradient-to-br ${item.color} shadow-lg` : 'bg-slate-800/50 group-hover:bg-slate-700/50'
+                      }`}>
+                        <Icon size={16} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'} />
+                      </div>
+                      {!isCollapsed && <span className="font-medium">{item.label}</span>}
+                      {item.id === 'mytasks' && pendingCount > 0 && (
+                        isCollapsed ? (
+                          <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                        ) : (
+                          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(244,63,94,0.5)]">
+                            {pendingCount > 99 ? '99+' : pendingCount}
+                          </span>
+                        )
+                      )}
+                    </button>
+                  )
+                })}
               </div>
-              {!isCollapsed && <span className="font-medium">{item.label}</span>}
-              {item.id === 'mytasks' && pendingCount > 0 && (
-                isCollapsed ? (
-                  <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
-                ) : (
-                  <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(244,63,94,0.5)]">
-                    {pendingCount > 99 ? '99+' : pendingCount}
-                  </span>
-                )
-              )}
-            </button>
-          )
-        })}
+            </div>
+          ))}
       </nav>
 
       {!isCollapsed && (

@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import Sidebar from '@/components/common/common-sidebar-nav'
 import MonitorView from '@/components/disposal/disposal-monitor-view'
 import JudgeView from '@/components/disposal/disposal-judge-view'
@@ -10,6 +9,9 @@ import AlertCenterView from '@/components/alert/alert-center-view'
 import MyTasksView from '@/components/common/common-my-tasks-view'
 import SettingsView from '@/components/settings/settings-main-view'
 import ScreenView from '@/components/screen/screen-view'
+import DevicesMainView from '@/components/devices/devices-main-view'
+import StatsMainView from '@/components/stats/stats-main-view'
+import UsersMainView from '@/components/users/users-main-view'
 import AlertDetailCard from '@/components/alert/alert-detail-card-modal'
 import LoginScreen, { type LoginResult } from '@/components/common/common-login-screen'
 import MockBootstrap from '@/components/common/common-mock-bootstrap'
@@ -17,35 +19,24 @@ import { installMockApi } from '@/lib/mock/mock-api-installer'
 import { useTheme, type Theme } from '@/lib/utils/util-use-theme-hook'
 import { useDroneFleet } from '@/lib/utils/util-use-drone-fleet-hook'
 import { seedMarkerPosition } from '@/components/dashboard/dashboard-risk-map-3d'
-import LocationInfoPanel from '@/components/dashboard/dashboard-location-info-panel'
 import AlarmDispatchModal from '@/components/alert/alert-dispatch-confirm-modal'
 import TodoPopup from '@/components/common/common-todo-popup'
-import type { RealMapMarker } from '@/components/dashboard/dashboard-real-map-leaflet'
 import { ROLES, accountOf, type RoleId } from '@/lib/auth/auth-role-permissions'
 import { setAuth as setGlobalAuth, subscribeAuth, getAuth, type AuthState } from '@/lib/auth/auth-session-store'
 import { recordLog, LOG_ACTIONS } from '@/lib/log/log-operation-audit-store'
-import type { TrainingTask, WarningLevel } from '@/lib/utils/util-app-types'
+import type { TrainingTask } from '@/lib/utils/util-app-types'
 import type { ManualAlertPayload } from '@/components/alert/alert-manual-create-modal'
 import { isQualifyingDetection, judgeFromDetection } from '@/lib/utils/util-live-judge-engine'
 
-const RealMap = dynamic(() => import('@/components/dashboard/dashboard-sc-datav-map'), {
-  ssr: false,
-  loading: () => <div className="flex h-full w-full items-center justify-center text-sm text-cyan-300/70">3D 地理态势加载中…</div>,
-})
-
-const levelStyle: Record<WarningLevel, { label: string; short: string; bg: string; text: string; bar: string; ring: string }> = {
-  RED: { label: '红色预警', short: '红', bg: 'bg-red-600', text: 'text-red-700', bar: 'bg-red-500', ring: 'ring-red-200' },
-  ORANGE: { label: '橙色预警', short: '橙', bg: 'bg-orange-500', text: 'text-orange-700', bar: 'bg-orange-500', ring: 'ring-orange-200' },
-  YELLOW: { label: '黄色预警', short: '黄', bg: 'bg-amber-400', text: 'text-amber-700', bar: 'bg-amber-400', ring: 'ring-amber-200' },
-  BLUE: { label: '蓝色预警', short: '蓝', bg: 'bg-blue-600', text: 'text-blue-700', bar: 'bg-blue-500', ring: 'ring-blue-200' },
-}
-
 const tabMeta: Record<string, { title: string }> = {
   screen: { title: '数据大屏' },
-  dashboard: { title: '空中智能象群风险研判预警与处置系统' },
   monitor: { title: '实时监控' },
   judge: { title: '警情研判' },
   alerts: { title: '警情中心' },
+  mytasks: { title: '我的任务' },
+  devices: { title: '设备管理' },
+  stats: { title: '数据统计' },
+  users: { title: '用户管理' },
   settings: { title: '系统设置' },
 }
 
@@ -70,7 +61,6 @@ export default function Home() {
   const lastPendingCountRef = useRef(0) // 上次待办计数，用于检测新增任务时自动弹窗
   const authRef = useRef(auth)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [locPanel, setLocPanel] = useState<{ lat: number; lng: number; city: string } | null>(null)
   const seenIdsRef = useRef<Set<string>>(new Set())
   // 防重复弹窗：已弹出过分发确认弹窗的警情ID，确认分发后不再重复弹出
   const poppedAlertIdsRef = useRef<Set<string>>(new Set())
@@ -387,48 +377,6 @@ export default function Home() {
     await fetchAll()
   }
 
-  const stats = useMemo(() => ({
-    total: tasks.length,
-    high: tasks.filter((t) => ['RED', 'ORANGE'].includes(t.warningLevel)).length,
-    running: tasks.filter((t) => t.status === 'RUNNING').length,
-    pending: tasks.filter((t) => t.status === 'PENDING').length,
-  }), [tasks])
-
-  // 统一排序：未完成在上（时间倒序），已完成在下（时间倒序）
-  const sortedTasks = useMemo(() => {
-    const unfinished = tasks.filter((t) => t.status !== 'COMPLETED' && !t.aggregatedAt && !t.closedAt)
-      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-    const completed = tasks.filter((t) => t.status === 'COMPLETED' || t.aggregatedAt || t.closedAt)
-      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-    return [...unfinished, ...completed]
-  }, [tasks])
-
-  const mapMarkers = useMemo<RealMapMarker[]>(
-    () => tasks.map((t) => {
-      const p = seedMarkerPosition(`${t.id}${t.name}`)
-      const locParts = [t.province, t.city, t.county, t.township].filter(Boolean)
-      const location = locParts.length ? locParts.join('') : undefined
-      const time = t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : undefined
-      const statusLabel = t.status === 'RUNNING' ? '正在处置' : t.status === 'PENDING' ? '待处理' : t.status === 'CLOSED' ? '已闭环' : t.status
-      return {
-        id: t.id,
-        name: t.name,
-        lng: typeof t.lng === 'number' ? t.lng : p.lng,
-        lat: typeof t.lat === 'number' ? t.lat : p.lat,
-        level: t.warningLevel,
-        risk: t.intrusionRisk,
-        simulated: !!t.simulated,
-        time,
-        location,
-        detectionCount: t.detectedCount,
-        alertType: t.alertType,
-        description: t.description || t.aiSummary,
-        status: statusLabel,
-      }
-    }),
-    [tasks],
-  )
-
   if (!isAuthed) {
     return (
       <>
@@ -479,64 +427,9 @@ export default function Home() {
               <ScreenView tasks={tasks} fleet={fleet} onOpenTask={handleViewTask} />
             )}
 
-            {activeTab === 'dashboard' && (
-            <header className="mb-3 overflow-hidden rounded-lg bg-[#0f1f3a] text-white shadow-lg">
-              <div className="flex flex-col items-center gap-1.5 p-3">
-                <h1 className="text-lg md:text-xl font-bold tracking-tight text-center">{meta.title}</h1>
-                <div className="flex flex-row flex-wrap gap-2 justify-center">
-                  <StatTile label="警情总数" value={stats.total} />
-                  <StatTile label="红橙重点" value={stats.high} />
-                  <StatTile label="进行中" value={stats.running} />
-                  <StatTile label="待处理" value={stats.pending} />
-                </div>
-              </div>
-            </header>
-            )}
-
-            {activeTab === 'dashboard' && (
-              <div className="space-y-3">
-                {/* 地图占满整个屏幕 */}
-                <div className="relative z-0 overflow-hidden rounded-lg border border-slate-700/50 bg-slate-100 p-1">
-                  <div className="h-[calc(100vh-230px)] w-full min-h-[440px]">
-                    <RealMap
-                      markers={mapMarkers}
-                      drones={fleet}
-                      center={[101.4, 23.6]}
-                      zoom={8}
-                      onMarkerClick={(m) => setLocPanel({ lat: m.lat, lng: m.lng, city: m.name })}
-                      onMapClick={(lat, lng, label) => setLocPanel({ lat, lng, city: label ?? '' })}
-                    />
-                  </div>
-                </div>
-
-                {/* 最新警情动态 - 移到地图下方 */}
-                <div className="rounded-xl border border-slate-800/60 bg-slate-900/40 p-3">
-                  <h2 className="mb-2 text-base font-semibold text-cyan-100">最新警情动态</h2>
-                  {tasks.length === 0 ? (
-                    <div className="py-4 text-center text-sm text-slate-500">暂无警情数据</div>
-                  ) : (
-                    <ul className="divide-y divide-slate-800/50">
-                      {sortedTasks.slice(0, 6).map((t) => {
-                        const lv = levelStyle[t.warningLevel] ?? levelStyle.BLUE
-                        return (
-                          <li
-                            key={t.id}
-                            className="flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors hover:bg-slate-800/40"
-                            onClick={() => handleViewTask(t)}
-                          >
-                            <div className="text-left text-sm text-slate-200">
-                              <span className={`mr-2 rounded px-1.5 py-0.5 text-xs font-bold text-white ${lv.bg}`}>{lv.short}</span>
-                              {t.name}
-                            </div>
-                            <span className="text-xs text-slate-500">风险 {t.intrusionRisk ?? '-'}</span>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            )}
+            {activeTab === 'devices' && <DevicesMainView fleet={fleet} tasks={tasks} />}
+            {activeTab === 'stats' && <StatsMainView tasks={tasks} />}
+            {activeTab === 'users' && <UsersMainView currentRole={role} currentAccount={currentUser} />}
 
             {activeTab === 'mytasks' && (
               <MyTasksView currentRole={role} currentName={currentName} tasks={tasks} />
@@ -576,7 +469,6 @@ export default function Home() {
         </div>
 
         {selectedTask && <AlertDetailCard alertId={selectedTask.id} onClose={() => setSelectedTask(null)} />}
-        {locPanel && <LocationInfoPanel lat={locPanel.lat} lng={locPanel.lng} city={locPanel.city} onClose={() => setLocPanel(null)} />}
         {popupTask && <AlarmDispatchModal task={popupTask} onConfirm={onConfirmPopup} onDismiss={onDismissPopup} />}
         <TodoPopup
           open={showTodoPopup}
@@ -590,15 +482,4 @@ export default function Home() {
     </>
   )
 }
-
-function StatTile({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md border border-slate-800/60 bg-slate-900/40 px-3 py-1.5 min-w-[90px] text-center">
-      <div className="text-[10px] text-slate-400">{label}</div>
-      <div className="text-lg font-bold text-white leading-tight">{value}</div>
-    </div>
-  )
-}
-
-
 
