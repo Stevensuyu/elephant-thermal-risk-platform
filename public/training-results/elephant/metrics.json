@@ -1,0 +1,19 @@
+{
+  "dataset_images": 6137,
+  "classes": ["dog", "person", "cheetah", "elephant", "animal", "device", "unknown"],
+  "baseline_run": "yolov8n_elephant_multisource_8e",
+  "baseline_epochs": 8,
+  "overall": {
+    "precision": 0.653,
+    "recall": 0.592,
+    "map50": 0.587,
+    "map50_95": 0.413
+  },
+  "elephant": {
+    "precision": 0.976,
+    "recall": 0.973,
+    "map50": 0.989,
+    "map50_95": 0.751
+  },
+  "notes": "当前可训练材料已扩展到 Elephant、LibreYOLO 热成像动物/人员、HIT-UAV 高空红外场景；网页展示指标仍为上一轮 elephant 基线训练结果，继续训练完成后需要回填新指标。"
+}

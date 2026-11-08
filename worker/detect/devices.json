@@ -1,0 +1,134 @@
+{
+  "devices": [
+    {
+      "id": "596269b937aa",
+      "name": "DJI Osmo Pocket 3",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "backend": "dshow",
+        "width": 1280,
+        "height": 720
+      },
+      "enabled": true,
+      "note": "USB 直连，Windows 识别为 UVC 摄像头；HDMI 输出需采集卡"
+    },
+    {
+      "id": "e11ab433fc7c",
+      "name": "测试大疆RTMP",
+      "type": "drone",
+      "params": {
+        "url": "rtmp://push-hz.fh-live.djigate.com/live-YR33M3/stream-3274?ts=1804435199&secret=703d3298f1026417af55faf2c64bbeb4",
+        "protocol": "RTMP",
+        "model": "dji_generic"
+      },
+      "enabled": true,
+      "note": "测试大疆司空2推流"
+    },
+    {
+      "id": "68692b5ab57c",
+      "name": "stream-设备",
+      "type": "stream",
+      "params": {
+        "url": "rtmp://push-hz.fh-live.djigate.com/live-YR33M3/stream-3274?ts=1804435199&secret=703d3298f1026417af55faf2c64bbeb4",
+        "protocol": "RTMP"
+      },
+      "enabled": true,
+      "note": ""
+    },
+    {
+      "id": "ab1009e976fd",
+      "name": "pocket",
+      "type": "stream",
+      "params": {
+        "url": "rtmp://push-hz.fh-live.djigate.com/live-YR33M3/stream-3276?ts=1803830399&secret=8f8110a004a21795b69d1b1efe414fef",
+        "protocol": "RTMP"
+      },
+      "enabled": true,
+      "note": ""
+    },
+    {
+      "id": "7dbc315cb89b",
+      "name": "webcam-5",
+      "type": "webcam",
+      "params": {},
+      "enabled": true,
+      "note": ""
+    },
+    {
+      "id": "6c6aefcbf60a",
+      "name": "测试-Pocket3-Python",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "backend": "dshow",
+        "width": 1280,
+        "height": 720
+      },
+      "enabled": true,
+      "note": "Python测试添加"
+    },
+    {
+      "id": "9205186914c8",
+      "name": "测试-代理路由-Pocket3",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "backend": "dshow",
+        "width": 1280,
+        "height": 720
+      },
+      "enabled": true,
+      "note": "通过代理路由测试"
+    },
+    {
+      "id": "bcb40cb8e4c0",
+      "name": "USB 摄像头",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "backend": "dshow",
+        "width": 1280,
+        "height": 720
+      },
+      "enabled": true,
+      "note": "普通 USB 摄像头 / 笔记本内置摄像头"
+    },
+    {
+      "id": "79e0fa6e26fd",
+      "name": "测试-自定义-Pocket3-第2次",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "backend": "dshow",
+        "width": 1280,
+        "height": 720
+      },
+      "enabled": true,
+      "note": ""
+    },
+    {
+      "id": "fc0dd08f509c",
+      "name": "通用 RTSP 相机",
+      "type": "stream",
+      "params": {
+        "url": "",
+        "protocol": "RTSP"
+      },
+      "enabled": true,
+      "note": "任意支持 RTSP 的网络相机/编码器/NVR，输入实际 RTSP 地址"
+    },
+    {
+      "id": "6aaac6d90076",
+      "name": "webcam-设备",
+      "type": "webcam",
+      "params": {
+        "index": 0,
+        "width": 640,
+        "height": 480
+      },
+      "enabled": true,
+      "note": ""
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+127.0.0.1 - - [11/Sep/2026 12:23:50] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:50] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:51] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:51] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:51] "GET /api/logs HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:52] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:53] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:53] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:54] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:54] "GET /api/logs HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:54] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:55] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:56] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:56] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:57] "GET /api/status HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:57] "GET /api/live-detection HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2026 12:23:57] "GET /api/logs HTTP/1.1" 200 -

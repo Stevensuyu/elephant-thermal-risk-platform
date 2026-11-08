@@ -1,0 +1,465 @@
+/* ============================================================
+   Tailwind Directives
+   ============================================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CSS Variables – Dark Sci-fi Theme (sc-datav inspired)
+   ============================================================ */
+:root {
+  --dv-bg:          #0a0f1e;
+  --dv-bg-deep:     #060a14;
+  --dv-panel-bg:    rgba(17, 24, 39, 0.85);
+  --dv-panel-border: rgba(139, 92, 246, 0.25);
+  --dv-glow:        0 0 12px rgba(139, 92, 246, 0.15);
+  --dv-text:        #e5e7eb;
+  --dv-muted:       #9ca3af;
+  --dv-cyan:        #22d3ee;
+  --dv-cyan-dim:    rgba(34, 211, 238, 0.3);
+  --dv-accent:      #a855f7;
+  --dv-danger:      #dc2626;
+  --dv-orange:      #ea580c;
+}
+
+.dark {
+  --dv-bg:          #0a0f1e;
+  --dv-bg-deep:     #060a14;
+  --dv-panel-bg:    rgba(17, 24, 39, 0.85);
+  --dv-panel-border: rgba(139, 92, 246, 0.25);
+  --dv-glow:        0 0 12px rgba(139, 92, 246, 0.15);
+  --dv-text:        #e5e7eb;
+  --dv-muted:       #9ca3af;
+  --dv-cyan:        #22d3ee;
+  --dv-cyan-dim:    rgba(34, 211, 238, 0.3);
+  --dv-accent:      #a855f7;
+  --dv-danger:      #dc2626;
+  --dv-orange:      #ea580c;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+body {
+  margin: 0;
+  font-family: 'Inter', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #0a0f1e 0%, #111827 50%, #0a0f1e 100%);
+  background-attachment: fixed;
+  color: var(--dv-text);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
+
+/* Selection */
+::selection { background: rgba(139, 92, 246, 0.3); color: #fff; }
+
+/* ============================================================
+   dv-* Design System Classes (used across all components)
+   ============================================================ */
+
+/* ── Panel / Card Frame ─────────────────────────────────── */
+.dv-panel {
+  position: relative;
+  border: 1px solid var(--dv-panel-border);
+  border-radius: 10px;
+  background: var(--dv-panel-bg);
+  box-shadow: var(--dv-glow);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.dv-panel:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 0 18px rgba(53, 240, 255, 0.12);
+}
+
+/* ── Title ──────────────────────────────────────────────── */
+.dv-title {
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, #e0f7ff 0%, #35f0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Inner Card ─────────────────────────────────────────── */
+.dv-card {
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  background: rgba(19, 31, 53, 0.6);
+  transition: background 0.2s, border-color 0.2s;
+}
+.dv-card:hover {
+  background: rgba(22, 36, 60, 0.8);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* ── Blinking Dot ───────────────────────────────────────── */
+@keyframes dv-blink-anim {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+.dv-blink {
+  animation: dv-blink-anim 1.4s ease-in-out infinite;
+}
+
+/* ── Online Status Dot ──────────────────────────────────── */
+.dv-dot-online {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00d4aa;
+  box-shadow: 0 0 8px rgba(0, 212, 170, 0.6);
+  animation: dv-blink-anim 2s ease-in-out infinite;
+}
+
+/* ── Cyan Glow ──────────────────────────────────────────── */
+.dv-glow-cyan {
+  box-shadow: 0 0 14px rgba(53, 240, 255, 0.3), 0 0 4px rgba(53, 240, 255, 0.15);
+}
+
+/* ── Scan Line Effect ───────────────────────────────────── */
+@keyframes dv-scan-move {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+.dv-scan::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(53, 240, 255, 0.06) 45%,
+    rgba(53, 240, 255, 0.12) 50%,
+    rgba(53, 240, 255, 0.06) 55%,
+    transparent 100%
+  );
+  animation: dv-scan-move 4s linear infinite;
+}
+
+/* ── Grid Background ────────────────────────────────────── */
+.dv-grid-bg {
+  background:
+    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, #0a1628 0%, #0f1f3a 100%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  background-attachment: fixed, fixed, fixed;
+}
+
+/* ── Pulse Ring ─────────────────────────────────────────── */
+@keyframes dv-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(53, 240, 255, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(53, 240, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(53, 240, 255, 0); }
+}
+
+/* ── Border Corner Decorator ────────────────────────────── */
+.dv-border-corners::before,
+.dv-border-corners::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--dv-cyan-dim);
+  border-style: solid;
+}
+.dv-border-corners::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+  border-radius: 4px 0 0 0;
+}
+.dv-border-corners::after {
+  bottom: 0; right: 0;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 4px 0;
+}
+
+/* ── Number Scroll Effect ───────────────────────────────── */
+.dv-number {
+  font-family: 'Rajdhani', 'Inter', monospace;
+  font-weight: 800;
+  background: linear-gradient(180deg, #ffffff 0%, #35f0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes module-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes step-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.6); }
+  100% { box-shadow: 0 0 18px 6px rgba(0, 212, 170, 0); }
+}
+
+/* ── Rotating Border ────────────────────────────────────── */
+@keyframes dv-rotate-border {
+  0%   { border-color: rgba(53, 240, 255, 0.15); }
+  50%  { border-color: rgba(53, 240, 255, 0.35); }
+  100% { border-color: rgba(53, 240, 255, 0.15); }
+}
+
+/* ── Fade In (referenced by animate-[fadeIn_…]) ───────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Flowing Gradient (timeline connector) ───────────────── */
+@keyframes dv-flow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.dv-flow-line {
+  background-size: 200% 100%;
+  animation: dv-flow 1.6s linear infinite;
+}
+
+/* ── Receipt slide-in (terminal delivery) ────────────────── */
+@keyframes receipt-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.receipt-in { animation: receipt-in 0.45s ease both; }
+
+/* ── Receipt pulse (newly arrived terminal) ──────────────── */
+@keyframes receipt-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.55); transform: scale(1); }
+  60%  { box-shadow: 0 0 0 8px rgba(0, 212, 170, 0); transform: scale(1.1); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); transform: scale(1); }
+}
+.receipt-pulse { animation: receipt-pulse 0.7s ease both; }
+
+/* ── Node pop (stepper active/done) ──────────────────────── */
+@keyframes node-pop {
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ── Thinking dots (AI reasoning) ────────────────────────── */
+@keyframes thinking-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+  40%           { transform: translateY(-4px); opacity: 1; }
+}
+.thinking-dot { animation: thinking-bounce 1.2s infinite ease-in-out; }
+
+/* ============================================================
+   ECharts Overrides (dark theme)
+   ============================================================ */
+.echart-container {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+/* ============================================================
+   Utility: prevent layout shift
+   ============================================================ */
+html { scroll-behavior: smooth; }
+
+
+/* ============================================================
+   UI Optimization: Buttons, Forms, Badges (统一精致化)
+   ============================================================ */
+
+/* ── 统一按钮 ─────────────────────────────────────────────── */
+.dv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+.dv-btn:active { transform: scale(0.97); }
+.dv-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.dv-btn-primary {
+  background: linear-gradient(135deg, rgba(53, 240, 255, 0.18), rgba(0, 212, 170, 0.15));
+  border-color: rgba(53, 240, 255, 0.35);
+  color: #a8f0ff;
+}
+.dv-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(53, 240, 255, 0.28), rgba(0, 212, 170, 0.22));
+  border-color: rgba(53, 240, 255, 0.55);
+  box-shadow: 0 0 14px rgba(53, 240, 255, 0.18);
+}
+
+.dv-btn-danger {
+  background: rgba(255, 59, 59, 0.12);
+  border-color: rgba(255, 59, 59, 0.35);
+  color: #ff9999;
+}
+.dv-btn-danger:hover:not(:disabled) {
+  background: rgba(255, 59, 59, 0.22);
+  border-color: rgba(255, 59, 59, 0.55);
+  box-shadow: 0 0 12px rgba(255, 59, 59, 0.15);
+}
+
+.dv-btn-ghost {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+}
+.dv-btn-ghost:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.45);
+  color: #cbd5e1;
+}
+
+/* ── 统一表单输入 ─────────────────────────────────────────── */
+.dv-input, .dv-select, .dv-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #d6e6f0;
+  background: rgba(19, 31, 53, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+.dv-input:focus, .dv-select:focus, .dv-textarea:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(22, 36, 60, 0.9);
+}
+.dv-input::placeholder, .dv-textarea::placeholder { color: #4a6a84; }
+.dv-select option { background: #0a1628; color: #d6e6f0; }
+
+/* ── 统一徽章/标签 ────────────────────────────────────────── */
+.dv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+.dv-badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+.dv-badge-orange { background: rgba(249, 115, 22, 0.15); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.3); }
+.dv-badge-yellow { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+.dv-badge-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+.dv-badge-green { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+.dv-badge-cyan { background: rgba(53, 240, 255, 0.12); color: #67e8f9; border: 1px solid rgba(53, 240, 255, 0.25); }
+.dv-badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+
+/* ── 分割线 ───────────────────────────────────────────────── */
+.dv-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(53, 240, 255, 0.15), transparent);
+  margin: 12px 0;
+}
+
+/* ── 加载骨架屏 ────────────────────────────────────────────── */
+@keyframes dv-skeleton {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.dv-skeleton {
+  background: linear-gradient(90deg, rgba(53, 240, 255, 0.04) 25%, rgba(53, 240, 255, 0.09) 50%, rgba(53, 240, 255, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: dv-skeleton 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ── 空状态 ────────────────────────────────────────────────── */
+.dv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: #5a7a94;
+  text-align: center;
+  gap: 8px;
+}
+.dv-empty-icon { opacity: 0.4; margin-bottom: 4px; }
+.dv-empty-title { font-size: 13px; font-weight: 500; color: #7a9ab4; }
+.dv-empty-desc { font-size: 11px; color: #4a6a84; }
+
+/* ── 工具提示 ──────────────────────────────────────────────── */
+.dv-tooltip {
+  position: relative;
+}
+.dv-tooltip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #d6e6f0;
+  background: rgba(19, 31, 53, 0.95);
+  border: 1px solid rgba(53, 240, 255, 0.2);
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 100;
+}
+.dv-tooltip:hover::after { opacity: 1; }
+
+/* ── 响应式优化 ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dv-panel { border-radius: 8px; }
+  .dv-btn { padding: 6px 12px; font-size: 11px; }
+  .dv-title { font-size: 16px; }
+}
+
+
+/* 跳动紫色小球动画 */
+@keyframes dv-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.dv-bounce-dot {
+  animation: dv-bounce 1.2s ease-in-out infinite;
+}
+.dv-bounce-dot:nth-child(2) { animation-delay: 0.15s; }
+.dv-bounce-dot:nth-child(3) { animation-delay: 0.3s; }
+.dv-bounce-dot:nth-child(4) { animation-delay: 0.45s; }
+.dv-bounce-dot:nth-child(5) { animation-delay: 0.6s; }
+.dv-bounce-dot:nth-child(6) { animation-delay: 0.75s; }
+.dv-bounce-dot:nth-child(7) { animation-delay: 0.9s; }
+.dv-bounce-dot:nth-child(8) { animation-delay: 1.05s; }
+
+
+/* 自定义滚动条 */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(139,92,246,0.3) transparent; }
+

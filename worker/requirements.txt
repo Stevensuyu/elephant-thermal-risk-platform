@@ -1,0 +1,14 @@
+# worker 训练/检测依赖
+# YOLO 已升级到最新版（ultralytics 8.4.x，支持 YOLO11 / YOLO26 等最新模型）
+ultralytics>=8.4.0
+requests==2.31.0
+opencv-python>=4.10.0
+numpy>=1.26.0
+
+# ---- 英伟达 LocateAnything-3B（开放词汇视觉定位）----
+# 说明：torch 需单独按 CUDA 版本安装，见 .venv 安装脚本 detect_setup.ps1
+transformers==4.57.1
+peft>=0.14.0
+lmdb>=1.4.0
+decord>=0.6.0
+pillow>=10.0.0

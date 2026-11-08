@@ -1,0 +1,12 @@
+2026-09-11 12:23:48,638 [INFO] detect: ============================================================
+2026-09-11 12:23:48,641 [INFO] detect: 检测服务启动中...
+2026-09-11 12:23:48,643 [INFO] detect: 日志文件: C:\Users\123\Desktop\elephant-thermal-risk-platform\worker\detect\logs\detect_20260911.log
+2026-09-11 12:23:48,645 [INFO] detect: 当前进程 PID: 28336
+2026-09-11 12:23:49,659 [INFO] detect: 旧进程 PID=26144 已不存在，清理 pid 文件
+2026-09-11 12:23:49,983 [INFO] detect: Pipeline 初始化完成
+2026-09-11 12:23:49,985 [INFO] detect: 等待用户在设置页面添加设备并启动检测...
+2026-09-11 12:23:49,998 [INFO] detect.http: 检测服务已启动: http://127.0.0.1:8765
+2026-09-11 12:23:49,998 [INFO] detect.http:   实时流: http://127.0.0.1:8765/video
+2026-09-11 12:23:49,999 [INFO] detect.http:   状态:   http://127.0.0.1:8765/api/status
+2026-09-11 12:23:49,999 [INFO] detect.http:   摄像头: http://127.0.0.1:8765/api/cameras
+2026-09-11 12:23:49,999 [INFO] detect.http:   设备:   http://127.0.0.1:8765/api/devices  (预设: http://127.0.0.1:8765/api/devices/presets)

@@ -1,0 +1,102 @@
+﻿序号,文件路径,文件名称,所属功能模块,功能描述,文件类型
+1,src/app/error.tsx,error.tsx,应用框架,全局错误边界，捕获渲染错误并显示友好提示,页面
+2,src/app/layout.tsx,layout.tsx,应用框架,Next.js根布局，全局样式、字体、水印、主题初始化脚本,配置
+3,src/app/page.tsx,page.tsx,应用框架,应用入口，包含侧边栏、主内容区、标签切换、登录状态管理,页面
+4,src/app/alert/[id]/alert-detail-client-page.tsx,alert-detail-client-page.tsx,警情管理,警情详情页客户端组件，整合研判、处置流程、分发、结案,组件
+5,src/app/alert/[id]/page.tsx,page.tsx,警情管理,警情详情动态路由页面，服务端获取警情数据,页面
+6,src/app/api/tasks/[id]/route.ts,route.ts,警情管理,GET获取单个警情，PATCH更新警情状态/字段,API
+7,src/app/api/tasks/route.ts,route.ts,警情管理,GET获取所有警情，POST创建新警情，服务端SQLite/JSON存储,API
+8,src/components/alert/alert-active-warning-banner.tsx,alert-active-warning-banner.tsx,警情管理,顶部活动预警横幅，显示当前最高等级预警和快速操作,组件
+9,src/components/alert/alert-center-view.tsx,alert-center-view.tsx,警情管理,警情中心页面，警情列表/筛选/搜索/批量操作,组件
+10,src/components/alert/alert-create-task-modal.tsx,alert-create-task-modal.tsx,警情管理,手动创建警情弹窗，填写警情信息/等级/位置/象群数据,组件
+11,src/components/alert/alert-detail-card-modal.tsx,alert-detail-card-modal.tsx,警情管理,警情详情卡片弹窗（旧版，已改为页面跳转）,组件
+12,src/components/alert/alert-dispatch-confirm-modal.tsx,alert-dispatch-confirm-modal.tsx,警情管理,新警情待分发确认弹窗，展示AI生成处置预案，支持编辑步骤,组件
+13,src/components/alert/alert-linkage-panel.tsx,alert-linkage-panel.tsx,警情管理,警情联动处置面板，展示预警广播/灯光/人员调度等联动动作,组件
+14,src/components/alert/alert-manual-create-modal.tsx,alert-manual-create-modal.tsx,警情管理,手动触发告警弹窗，快速创建简易警情,组件
+15,src/components/alert/alert-notification-bell.tsx,alert-notification-bell.tsx,警情管理,顶部通知铃铛，显示未读警情数量，点击展开通知列表,组件
+16,src/components/alert/alert-simulate-modal.tsx,alert-simulate-modal.tsx,警情管理,模拟警情生成弹窗，选择场景/等级/位置生成测试警情,组件
+17,src/components/alert/alert-task-card.tsx,alert-task-card.tsx,警情管理,警情列表卡片组件，展示警情摘要/等级/状态/操作按钮,组件
+18,src/components/alert/alert-unified-feed-list.tsx,alert-unified-feed-list.tsx,警情管理,统一警信息流列表，聚合所有来源警情，实时更新,组件
+19,src/app/api/disposal/route.ts,route.ts,处置流程,GET获取处置工单，POST创建工单，PATCH保存步骤/结案推进,API
+20,src/components/disposal/disposal-closure-report-modal.tsx,disposal-closure-report-modal.tsx,处置流程,结案报告生成弹窗，AI生成报告，预览/编辑/确认结案,组件
+21,src/components/disposal/disposal-closure-report-view.tsx,disposal-closure-report-view.tsx,处置流程,结案报告详情查看，展示完整报告内容和确认记录,组件
+22,src/components/disposal/disposal-config-panel.tsx,disposal-config-panel.tsx,处置流程,处置流程模板配置，步骤模板/角色/时间配置,组件
+23,src/components/disposal/disposal-judge-integrated-panel.tsx,disposal-judge-integrated-panel.tsx,处置流程,警情研判综合面板，AI研判结果/风险评估/处置建议,组件
+24,src/components/disposal/disposal-judge-view.tsx,disposal-judge-view.tsx,处置流程,警情研判页面，AI研判/风险推演/处置方案生成,组件
+25,src/components/disposal/disposal-monitor-view.tsx,disposal-monitor-view.tsx,处置流程,实时监控页面，视频流/地图/无人机/警情实时监控,组件
+26,src/components/disposal/disposal-risk-simulation-panel.tsx,disposal-risk-simulation-panel.tsx,处置流程,风险推演面板，1.6小时象群移动推演，AI分析，算法说明,组件
+27,src/components/disposal/disposal-step-confirm-popup.tsx,disposal-step-confirm-popup.tsx,处置流程,处置步骤确认弹窗，负责人确认步骤完成，填写执行情况,组件
+28,src/components/disposal/disposal-timeline-panel.tsx,disposal-timeline-panel.tsx,处置流程,处置流程时间线面板，AI动态生成步骤，添加/编辑/确认/重新生成,组件
+29,src/app/api/ai-analysis/auto-judge/route.ts,route.ts,AI研判与大模型,POST AI自动研判警情等级和处置建议,API
+30,src/app/api/ai-analysis/disposal/route.ts,route.ts,AI研判与大模型,POST AI动态生成处置流程（步骤/角色/时间），基于警情等级调整,API
+31,src/app/api/ai-analysis/monitor/route.ts,route.ts,AI研判与大模型,POST AI生成处置监控分析，实时跟踪处置进度和风险,API
+32,src/app/api/ai-analysis/report/route.ts,route.ts,AI研判与大模型,POST AI生成处置评估报告/结案报告，真实LLM生成,API
+33,src/app/api/ai-analysis/stream/route.ts,route.ts,AI研判与大模型,POST流式AI研判，SSE实时输出研判过程和结论,API
+34,src/app/api/ai-analysis/summary/route.ts,route.ts,AI研判与大模型,POST AI生成研判总结，综合多源数据给出结论和建议,API
+35,src/lib/ai/ai-analysis-engine.ts,ai-analysis-engine.ts,AI研判与大模型,AI分析引擎，警情研判/风险评估/处置建议生成逻辑,工具
+36,src/lib/ai/ai-llm-client.ts,ai-llm-client.ts,AI研判与大模型,OpenRouter LLM调用客户端，429重试/备用模型切换/JSON解析,工具
+37,src/lib/ai/ai-report-generator.ts,ai-report-generator.ts,AI研判与大模型,AI评估报告/结案报告生成，模板+LLM动态内容,工具
+38,src/lib/ai/ai-video-report-generator.ts,ai-video-report-generator.ts,AI研判与大模型,AI视频分析报告生成，视频内容理解+摘要,工具
+39,src/app/api/dispatch/confirm/route.ts,route.ts,多角色分发,POST确认警情分发，更新警情状态为处置中，关联处置流程,API
+40,src/app/api/risk-simulation/route.ts,route.ts,风险推演,POST风险推演，基于象群位置/移动方向/气象/地形计算，AI分析研判,API
+41,src/lib/utils/util-risk-trend-predictor.ts,util-risk-trend-predictor.ts,风险推演,风险趋势预测算法，基于历史数据的时间序列预测,工具
+42,src/components/dashboard/dashboard-ai-reasoning-trace.tsx,dashboard-ai-reasoning-trace.tsx,地图监控与态势,AI研判推理过程展示，实时输出思考步骤和依据,组件
+43,src/components/dashboard/dashboard-ai-trend-chart.tsx,dashboard-ai-trend-chart.tsx,地图监控与态势,AI风险趋势图表，ECharts可视化，象群活动趋势预测,组件
+44,src/components/dashboard/dashboard-drone-search-modes.tsx,dashboard-drone-search-modes.tsx,地图监控与态势,无人机搜索模式切换面板，热成像/可见光/巡航模式,组件
+45,src/components/dashboard/dashboard-location-info-panel.tsx,dashboard-location-info-panel.tsx,地图监控与态势,地图点击位置信息面板，显示经纬度/海拔/附近村寨/地形,组件
+46,src/components/dashboard/dashboard-multi-source-fusion.tsx,dashboard-multi-source-fusion.tsx,地图监控与态势,多源数据融合面板，视频/热成像/无人机/传感器数据聚合,组件
+47,src/components/dashboard/dashboard-real-map-leaflet.tsx,dashboard-real-map-leaflet.tsx,地图监控与态势,Leaflet实时地图，警情标记/无人机位置/行政边界/路线规划,组件
+48,src/components/dashboard/dashboard-realtime-judge-control.tsx,dashboard-realtime-judge-control.tsx,地图监控与态势,实时研判控制面板，启动/暂停研判，参数调整，结果展示,组件
+49,src/components/dashboard/dashboard-risk-map-3d.tsx,dashboard-risk-map-3d.tsx,地图监控与态势,Three.js 3D风险地图，地形可视化，风险热力图，象群轨迹,组件
+50,src/components/dashboard/dashboard-situational-digest.tsx,dashboard-situational-digest.tsx,地图监控与态势,态势总览摘要卡片，警情统计/风险等级/处置进度/关键指标,组件
+51,src/app/api/auth/login/route.ts,route.ts,用户认证与权限,POST用户登录验证，返回用户信息和角色，记录登录日志,API
+52,src/app/api/login-logs/route.ts,route.ts,用户认证与权限,GET获取登录审计日志，支持按用户/时间/IP/结果筛选,API
+53,src/app/api/users/route.ts,route.ts,用户认证与权限,GET获取用户列表，POST创建用户，PATCH更新用户，删除用户,API
+54,src/lib/auth/auth-role-permissions.ts,auth-role-permissions.ts,用户认证与权限,RBAC角色权限定义，4个角色（管理员/管理中心/街道干部/警员）权限矩阵,工具
+55,src/lib/auth/auth-session-store.ts,auth-session-store.ts,用户认证与权限,用户认证状态管理，登录/登出/会话持久化/角色信息,工具
+56,src/lib/log/log-login-audit-store.ts,log-login-audit-store.ts,日志审计,登录日志存储，记录登录时间/IP/地点/设备/结果/会话ID,工具
+57,src/lib/log/log-operation-audit-store.ts,log-operation-audit-store.ts,日志审计,操作日志存储，记录所有用户操作/时间/角色/详情/结果,工具
+58,src/app/api/watermark-config/route.ts,route.ts,水印系统,GET获取水印配置，POST保存水印配置（内容/大小/字体/透明度等）,API
+59,src/components/settings/settings-admin-panel.tsx,settings-admin-panel.tsx,系统设置,系统管理面板，操作日志/登录日志/水印设置/用户管理,组件
+60,src/components/settings/settings-ai-config-panel.tsx,settings-ai-config-panel.tsx,系统设置,AI模型配置中心，模型列表/添加/测试连接/启用模型,组件
+61,src/components/settings/settings-dispatch-channels-panel.tsx,settings-dispatch-channels-panel.tsx,系统设置,设备分发通道配置，短信/广播/APP推送通道管理,组件
+62,src/components/settings/settings-drone-registry-panel.tsx,settings-drone-registry-panel.tsx,系统设置,无人机设备台账，无人机信息/状态/编队管理,组件
+63,src/components/settings/settings-general-panel.tsx,settings-general-panel.tsx,系统设置,通用设置面板，用户信息/外观主题切换/平台信息,组件
+64,src/components/settings/settings-login-logs-panel.tsx,settings-login-logs-panel.tsx,系统设置,登录审计日志查看器，列表/搜索/筛选/详情,组件
+65,src/components/settings/settings-main-view.tsx,settings-main-view.tsx,系统设置,设置页面主视图，子标签切换（系统管理/AI/设备/处置/模拟）,组件
+66,src/components/settings/settings-simulation-test-panel.tsx,settings-simulation-test-panel.tsx,系统设置,模拟测试面板，警情模拟/AI测试/压力测试,组件
+67,src/components/settings/settings-video-stream-panel.tsx,settings-video-stream-panel.tsx,系统设置,视频流配置面板，摄像头/RTSP流/无人机视频源管理,组件
+68,src/lib/store/store-dispatch-channels.ts,store-dispatch-channels.ts,数据持久化,设备分发通道配置存储，短信/广播/APP推送配置,工具
+69,src/lib/store/store-disposal-workflows.ts,store-disposal-workflows.ts,数据持久化,处置工单数据存储，工单/步骤/状态/确认记录,工具
+70,src/lib/store/store-drone-registry.ts,store-drone-registry.ts,数据持久化,无人机设备台账存储，无人机信息/状态/编队,工具
+71,src/lib/store/store-index-barrel.ts,store-index-barrel.ts,数据持久化,Store统一导出入口，聚合所有store模块,工具
+72,src/lib/store/store-server-persistence.ts,store-server-persistence.ts,数据持久化,服务端数据持久化，JSON文件存储，警情/工单/用户数据,工具
+73,src/lib/store/store-users.ts,store-users.ts,数据持久化,用户账号数据存储，账号/姓名/角色/密码/联系电话,工具
+74,src/lib/store/store-watermark-config.ts,store-watermark-config.ts,数据持久化,水印配置服务端存储，内容/大小/字体/透明度/方向/密度/颜色,工具
+75,src/lib/mock/mock-api-installer.ts,mock-api-installer.ts,Mock数据层,Mock API拦截器安装，白名单机制，真实API放行,工具
+76,src/lib/mock/mock-api-router.ts,mock-api-router.ts,Mock数据层,Mock API路由处理，非白名单端点的模拟响应,工具
+77,src/lib/mock/mock-data-seeder.ts,mock-data-seeder.ts,Mock数据层,Mock种子数据，初始警情/无人机/用户/配置数据,工具
+78,src/lib/mock/mock-local-storage.ts,mock-local-storage.ts,Mock数据层,Mock localStorage数据存储，旧版数据持久化（已逐步迁移服务端）,工具
+79,src/lib/utils/util-alert-level-icons.ts,util-alert-level-icons.ts,通用工具,警情等级emoji图标映射，红/橙/黄/蓝对应图标,工具
+80,src/lib/utils/util-alert-level-styles.ts,util-alert-level-styles.ts,通用工具,警情等级UI样式映射，颜色/标签/背景/边框,工具
+81,src/lib/utils/util-app-types.ts,util-app-types.ts,通用工具,全局应用类型定义，警情/任务/用户/角色等核心类型,工具
+82,src/lib/utils/util-disposal-shared-types.ts,util-disposal-shared-types.ts,通用工具,处置流程共享类型定义，步骤类型/角色/状态枚举,工具
+83,src/lib/utils/util-dji-skyport-api.ts,util-dji-skyport-api.ts,通用工具,大疆机场SkyPort API集成，无人机任务/视频/状态,工具
+84,src/lib/utils/util-frontend-mode.ts,util-frontend-mode.ts,通用工具,前端运行模式检测，开发/生产/Mock模式判断,工具
+85,src/lib/utils/util-live-judge-engine.ts,util-live-judge-engine.ts,通用工具,实时研判引擎，象群活动实时分析/风险计算/预警触发,工具
+86,src/lib/utils/util-use-alerts-hook.ts,util-use-alerts-hook.ts,通用工具,React Hook，警情数据获取/订阅/更新,工具
+87,src/lib/utils/util-use-drone-fleet-hook.ts,util-use-drone-fleet-hook.ts,通用工具,React Hook，无人机编队状态/位置/任务管理,工具
+88,src/lib/utils/util-use-theme-hook.ts,util-use-theme-hook.ts,通用工具,React Hook，深色/浅色/跟随系统主题切换，localStorage持久化,工具
+89,next.config.js,next.config.js,配置与样式,Next.js配置，安全头/重写/构建优化,配置
+90,postcss.config.js,postcss.config.js,配置与样式,PostCSS配置，Tailwind/autoprefixer插件,配置
+91,src/app/globals.css,globals.css,配置与样式,Tailwind指令、CSS变量（深浅主题）、设计系统类、动画、响应式,样式
+92,tailwind.config.js,tailwind.config.js,配置与样式,Tailwind CSS配置，darkMode:class/主题色/字体/动画,配置
+93,tsconfig.json,tsconfig.json,配置与样式,TypeScript编译配置，路径别名/严格模式,配置
+94,.gitignore,.gitignore,其他,Git忽略文件配置，node_modules/.next/.env等,配置
+95,package.json,package.json,其他,项目依赖和脚本，npm包管理,配置
+96,src/app/api/ai-models/test/route.ts,route.ts,其他,POST测试AI模型连接，真实请求OpenRouter验证Key有效性,API
+97,src/components/common/common-login-screen.tsx,common-login-screen.tsx,其他,用户登录界面，账号密码输入，4个固定账号，登录后待办弹窗,组件
+98,src/components/common/common-mock-bootstrap.tsx,common-mock-bootstrap.tsx,其他,Mock数据初始化引导，安装Mock API拦截器，加载种子数据,组件
+99,src/components/common/common-sidebar-nav.tsx,common-sidebar-nav.tsx,其他,左侧导航栏，菜单切换/用户信息/角色显示/移动端抽屉,组件
+100,src/components/common/common-todo-popup.tsx,common-todo-popup.tsx,其他,登录后待办任务弹窗，显示待处理警情和待完成步骤,组件
+101,src/components/common/common-watermark-layer.tsx,common-watermark-layer.tsx,其他,全局明水印层，SVG平铺水印，防伪检测，配置实时更新,组件

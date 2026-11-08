@@ -1,0 +1,120 @@
+// ── Prisma Schema: 大象热成像智能检测风险管控平台 ──────────────────────────
+// SQLite 数据库
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── 训练任务 ──────────────────────────────────────────────────────────────
+model Task {
+  id              String   @id
+  name            String
+  description     String   @default("")
+  status          String   @default("PENDING") // PENDING | RUNNING | COMPLETED | ERROR
+  progress        Int      @default(0)
+
+  // AI 风险分析
+  warningLevel    String   @default("BLUE") // BLUE | YELLOW | ORANGE | RED
+  intrusionRisk   Float    @default(0)
+  predictionWindow String  @default("")
+  aiSummary       String   @default("")
+  dispatchPlan    String   @default("[]") // JSON array
+  detectedCount   Int      @default(0)
+
+  // 任务控制
+  needsModelConfirm Boolean @default(false)
+  aggregatedAt    String?  // ISO datetime
+  completedAt     String?  // ISO datetime
+
+  // 训练参数
+  modelType       String   @default("yolov8n")
+  epochs          Int      @default(10)
+  batchSize       Int      @default(4)
+  imageSize       Int      @default(640)
+
+  // 视频文件
+  videoPath       String?
+  videoFile       String?
+  videoUrl        String?
+  videoFileName   String?
+
+  // 训练结果
+  metrics         String?  // JSON: { mAP50, precision, recall, frames, mode }
+  resultDir       String?
+  errorMessage    String?
+
+  // 标记
+  demoSimulated   Boolean  @default(false)
+
+  // 时间戳
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联
+  stages          Stage[]
+
+  @@map("tasks")
+}
+
+// ── 训练阶段 ──────────────────────────────────────────────────────────────
+model Stage {
+  id        String   @id @default(cuid())
+  taskId    String
+  name      String
+  progress  Int      @default(0)
+  status    String   @default("pending") // pending | running | completed | error
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("stages")
+}
+
+// ── 模型状态 ──────────────────────────────────────────────────────────────
+model ModelStatus {
+  id              String   @id @default("singleton")
+  version         String   @default("YOLOv8n-elephant-thermal")
+  status          String   @default("待继续训练")
+  datasetImages   Int      @default(6137)
+  classes         Int      @default(7)
+  map50           Float    @default(0.587)
+  elephantMap50   Float    @default(0.989)
+  precision       Float    @default(0.976)
+  recall          Float    @default(0.973)
+  source          String   @default("本地多源热成像训练集 (基线)")
+  lastUpdated     String   @default("基线模型")
+
+  @@map("model_status")
+}
+
+// ── 警情任务（服务端持久化，完整数据存JSON） ──────────────────────────────
+model AlertTask {
+  id            String   @id
+  name          String
+  status        String   @default("PENDING")
+  warningLevel  String   @default("blue")
+  alertType     String?
+  data          String   @default("{}") // 完整 TrainingTask JSON
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("alert_tasks")
+}
+
+// ── 处置流程（服务端持久化） ──────────────────────────────────────────────
+model DisposalWorkflowDB {
+  id        String   @id
+  taskId    String
+  data      String   @default("{}") // 完整 DisposalWorkflow JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskId])
+  @@map("disposal_workflows")
+}

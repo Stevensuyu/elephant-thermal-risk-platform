@@ -1,0 +1,92 @@
+node_modules/
+.next/
+dist/
+dist-site/
+*.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+prisma/migrations/
+*.pyc
+__pycache__/
+runs/
+datasets/
+storage/
+data/
+.git_backup/
+worker/__pycache__/
+
+/src/generated/prisma
+
+# Windows reserved device name
+nul
+
+# Python venv
+.venv/
+
+# Build output
+out/
+
+# Model files (large)
+models/
+*.pt
+
+# SQLite databases
+*.db
+dev.db
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Temporary scripts
+_*.py
+check_*.py
+deploy_*.py
+ssh_deploy.py
+check-*.py
+deploy-*.py
+diagnose-*.py
+redeploy-*.py
+get_*.py
+check_balance.js
+
+# Temporary reports
+AUDIT_REPORT.md
+*修复报告*.md
+*_2026*.md
+
+# Misc
+home_check.html
+要求.html
+
+# Large media files
+*.mp4
+*.mov
+*.avi
+user_materials/videos/
+user_materials/recordings/
+
+# 备份排除:可重新下载的数据集缓存
+downloads/
+user_materials/
+.vercel/
+
+# 含服务器密码的一次性运维脚本,不入库(桌面备份保留)
+download_map.py
+fix-imports.py
+fix_ecs_deps.py
+fix_maath.py
+rebuild-ecs.py
+restart-ecs.py
+restore_public.py
+search_county_ecs.py
+sync-to-ecs.py
+test-deploy.py
+upload-and-deploy.py
+fix_all_errors.js
+fix_leaflet*.js
+fix_remaining.js
+fix_syntax_errors.js
+fix_watermark.js

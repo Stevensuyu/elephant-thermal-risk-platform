@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>边境象群活动多风险评估与实时预警系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="auth-locked">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">无人机热成像 · 边缘 AI 识别 · 自动警情闭环</p>
+      <h1>边境象群活动多风险评估与实时预警系统</h1>
+    </div>
+    <div class="top-actions">
+      <button id="loginOpen" class="ghost">重新登录</button>
+      <label class="role-picker readonly">
+        当前身份
+        <span id="currentIdentity" class="identity-pill">未登录</span>
+      </label>
+      <span id="clock" class="pill">--:--:--</span>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section id="module-dashboard" class="module active" aria-label="动态面板">
+      <div class="module-head">
+        <div>
+          <h2>动态面板</h2>
+          <p>地图态势、无人机遥测、热成像 AI 识别与实时风险态势。</p>
+        </div>
+        <div class="action-row">
+          <button id="runAiDetection">分析当前热成像帧</button>
+          <button id="connectDrone" class="secondary">连接无人机</button>
+        </div>
+      </div>
+      <div class="dashboard-grid">
+        <article class="panel map-panel">
+          <div class="panel-head">
+            <h3>真实地图 API 态势图</h3>
+            <span id="mapStatus" class="tag">Leaflet / OpenStreetMap</span>
+          </div>
+          <div id="realMap" class="real-map"></div>
+        </article>
+        <article class="panel">
+          <h3>大疆司空 2 图像/热成像接入</h3>
+          <div class="connection-form">
+            <input id="flighthubStreamUrl" placeholder="司空 2 转码后的 HLS/WebRTC 播放地址，例如 https://.../live.m3u8">
+            <div class="action-row">
+              <button id="loadFlighthubStream">加载视频流</button>
+              <label class="upload-button">上传热成像帧
+                <input id="thermalUpload" type="file" accept="image/*">
+              </label>
+            </div>
+          </div>
+          <video id="flighthubVideo" class="stream-video" controls muted playsinline></video>
+          <h3>平台端 AI 识别</h3>
+          <canvas id="thermalCanvas" width="360" height="230" aria-label="热成像识别画布"></canvas>
+          <div id="aiDetectionResult" class="report compact"></div>
+        </article>
+        <article class="panel">
+          <h3>无人机遥测</h3>
+          <div id="dronePanel" class="telemetry"></div>
+        </article>
+        <article class="panel">
+          <h3>风险概览</h3>
+          <div id="riskOverview" class="metric-grid"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="module-incident" class="module" aria-label="警情处置">
+      <div class="module-head">
+        <div>
+          <h2>警情处置</h2>
+          <p>从发现警情到自动研判、自动分配、现场处置、复盘归档。</p>
+        </div>
+        <div class="action-row">
+          <button id="generateIncident">从当前识别生成警情</button>
+          <button id="autoRunFlow">全自动处置</button>
+        </div>
+      </div>
+      <div class="incident-grid">
+        <article class="panel">
+          <h3>当前警情</h3>
+          <div id="activeIncident" class="active-alert"></div>
+          <div id="workflow" class="workflow horizontal"></div>
+        </article>
+        <article class="panel">
+          <h3>风险评分解释</h3>
+          <div id="scoreBreakdown" class="score-grid"></div>
+        </article>
+        <article class="panel">
+          <h3>自动巡护建议</h3>
+          <ul id="recommendations" class="recommendations"></ul>
+        </article>
+        <article class="panel">
+          <h3>警情列表</h3>
+          <div id="incidentList" class="event-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="module-history" class="module" aria-label="历史处置">
+      <div class="module-head">
+        <div>
+          <h2>历史处置</h2>
+          <p>查看警情处置日志、历史归档、复盘结论与数据沉淀。</p>
+        </div>
+        <button id="exportDb" class="secondary">导出数据库 JSON</button>
+      </div>
+      <div class="history-grid">
+        <article class="panel">
+          <h3>处置时间线</h3>
+          <div id="handlingLog" class="log-list"></div>
+        </article>
+        <article class="panel">
+          <h3>系统分析报告</h3>
+          <div id="analysisReport" class="report"></div>
+        </article>
+        <article class="panel wide">
+          <h3>历史警情档案</h3>
+          <div id="historyTable" class="table-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="module-admin" class="module" aria-label="后台管理">
+      <div class="module-head">
+        <div>
+          <h2>后台管理</h2>
+          <p>设备管理、人员管理、警情管理、数据库与 AI 库接入配置。</p>
+        </div>
+        <button id="clearDb" class="secondary">清空本地库</button>
+      </div>
+      <div class="admin-grid">
+        <article class="panel">
+          <h3>设备管理</h3>
+          <div id="deviceManager" class="stack"></div>
+        </article>
+        <article class="panel">
+          <h3>人员管理</h3>
+          <div id="personnelManager" class="stack"></div>
+        </article>
+        <article class="panel">
+          <h3>警情管理</h3>
+          <div id="incidentManager" class="stack"></div>
+        </article>
+        <article class="panel">
+          <h3>数据库状态</h3>
+          <div id="databasePanel" class="database-panel"></div>
+        </article>
+        <article class="panel wide">
+          <h3>AI 识别库、大疆司空 2 与无人机接口</h3>
+          <div id="aiPanel" class="ai-panel"></div>
+        </article>
+        <article class="panel wide">
+          <h3>素材导入与模型训练中心</h3>
+          <div id="trainingPanel" class="training-panel"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="主导航">
+    <button class="active" data-module="module-dashboard"><span>⌖</span>动态面板</button>
+    <button data-module="module-incident"><span>!</span>警情处置</button>
+    <button data-module="module-history"><span>◷</span>历史处置</button>
+    <button data-module="module-admin"><span>▣</span>后台管理</button>
+  </nav>
+
+  <div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-label="系统登录">
+    <div class="modal-card">
+      <h2>系统登录</h2>
+      <p>请输入用户名和密码进入系统。默认账号：admin / 123456。</p>
+      <label>用户名
+        <input id="loginUsername" type="text" value="admin" autocomplete="username">
+      </label>
+      <label>口令
+        <input id="loginPassword" type="password" value="123456" autocomplete="current-password">
+      </label>
+      <p id="loginError" class="form-error"></p>
+      <div class="action-row">
+        <button id="loginSubmit">登录</button>
+        <button id="loginClose" class="secondary">清空</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertPopup" class="alert-popup hidden" role="alert">
+    <div class="alert-popup-card">
+      <div class="alert-pulse"></div>
+      <div>
+        <strong id="popupTitle">接收到新警情</strong>
+        <p id="popupBody">后台警情处置人员已收到弹窗警告。</p>
+        <div class="action-row">
+          <button id="popupAuto">自动处置</button>
+          <button id="popupClose" class="secondary">稍后处理</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
